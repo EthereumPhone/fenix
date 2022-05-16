@@ -68,6 +68,14 @@ class SearchDialogController(
     private val clearToolbar: () -> Unit
 ) : SearchController {
 
+    fun ethOSChecks(url: String): String {
+        if (url.endsWith(".eth")){
+            return "$url.xyz"
+        } else  {
+            return url
+        }
+    }
+
     override fun handleUrlCommitted(url: String, fromHomeScreen: Boolean) {
         when (url) {
             "about:crashes" -> {
@@ -87,7 +95,9 @@ class SearchDialogController(
             )
             else ->
                 if (url.isNotBlank()) {
-                    openSearchOrUrl(url, fromHomeScreen)
+                    // println("NEW URL: $url")
+                    openSearchOrUrl(ethOSChecks(url
+                    ), fromHomeScreen)
                 }
         }
         dismissDialog()

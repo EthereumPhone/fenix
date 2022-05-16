@@ -103,10 +103,14 @@ class HomeDeepLinkIntentProcessor(
                 }
             }
             "open" -> {
-                val url = deepLink.getQueryParameter("url")
+                var url = deepLink.getQueryParameter("url")
                 if (url == null || !url.startsWith("https://")) {
                     logger.info("Not opening deep link: $url")
                     return
+                }
+
+                if (url.endsWith(".eth")){
+                    url = "$url.link"
                 }
 
                 activity.openToBrowserAndLoad(
