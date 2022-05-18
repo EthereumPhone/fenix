@@ -30,6 +30,9 @@ import org.mozilla.fenix.ext.settings
 import org.mozilla.fenix.search.toolbar.SearchSelectorMenu
 import org.mozilla.fenix.settings.SupportUtils
 import org.mozilla.fenix.utils.Settings
+import org.web3j.ens.EnsResolver
+import org.web3j.protocol.Web3j
+
 
 /**
  * An interface that handles the view manipulation of the Search, triggered by the Interactor
@@ -70,7 +73,15 @@ class SearchDialogController(
 
     fun ethOSChecks(url: String): String {
         if (url.endsWith(".eth")){
-            return "$url.xyz"
+            try {
+                val web3j = Web3j.build(EthHttpService("http://127.0.0.1:8545"));
+                val ensResolver = EthENSResolver(web3j);
+                val urlResolver = URLResolver(web3j, ensResolver.obtainPublicResolver(url).contractAddress);
+                return urlResolver.ensToURL(url)
+            } catch (e: Exception) {
+                print(e.localizedMessage)
+                return "$url.xyz"
+            }
         } else  {
             return url
         }
