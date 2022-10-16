@@ -10,12 +10,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import mozilla.components.lib.state.Middleware
 import mozilla.components.lib.state.MiddlewareContext
+import org.mozilla.fenix.GleanMetrics.Messaging
 import org.mozilla.fenix.components.appstate.AppAction
 import org.mozilla.fenix.components.appstate.AppAction.MessagingAction.ConsumeMessageToShow
 import org.mozilla.fenix.components.appstate.AppAction.MessagingAction.Evaluate
 import org.mozilla.fenix.components.appstate.AppAction.MessagingAction.MessageClicked
 import org.mozilla.fenix.components.appstate.AppAction.MessagingAction.MessageDismissed
-import org.mozilla.fenix.components.appstate.AppAction.MessagingAction.MessageDisplayed
 import org.mozilla.fenix.components.appstate.AppAction.MessagingAction.Restore
 import org.mozilla.fenix.components.appstate.AppAction.MessagingAction.UpdateMessageToShow
 import org.mozilla.fenix.components.appstate.AppAction.MessagingAction.UpdateMessages
@@ -33,7 +33,7 @@ class MessagingMiddleware(
     override fun invoke(
         context: AppStoreMiddlewareContext,
         next: (AppAction) -> Unit,
-        action: AppAction
+        action: AppAction,
     ) {
         when (action) {
             is Restore -> {
@@ -47,6 +47,7 @@ class MessagingMiddleware(
                 val message = messagingStorage.getNextMessage(context.state.messaging.messages)
                 if (message != null) {
                     context.dispatch(UpdateMessageToShow(message))
+                    onMessagedDisplayed(message, context)
                 } else {
                     context.dispatch(ConsumeMessageToShow)
                 }
@@ -55,8 +56,6 @@ class MessagingMiddleware(
             is MessageClicked -> onMessageClicked(action.message, context)
 
             is MessageDismissed -> onMessageDismissed(context, action.message)
-
-            is MessageDisplayed -> onMessagedDisplayed(action.message, context)
 
             else -> {
                 // no-op
@@ -68,18 +67,20 @@ class MessagingMiddleware(
     @VisibleForTesting
     internal fun onMessagedDisplayed(
         oldMessage: Message,
-        context: AppStoreMiddlewareContext
+        context: AppStoreMiddlewareContext,
     ) {
+        sendShownMessageTelemetry(oldMessage.id)
         val newMetadata = oldMessage.metadata.copy(
             displayCount = oldMessage.metadata.displayCount + 1,
-            lastTimeShown = now()
+            lastTimeShown = now(),
         )
         val newMessage = oldMessage.copy(
-            metadata = newMetadata
+            metadata = newMetadata,
         )
         val newMessages = if (newMetadata.displayCount < oldMessage.maxDisplayCount) {
             updateMessage(context, oldMessage, newMessage)
         } else {
+            sendExpiredMessageTelemetry(newMessage.id)
             consumeMessageToShowIfNeeded(context, oldMessage)
             removeMessage(context, oldMessage)
         }
@@ -90,9 +91,19 @@ class MessagingMiddleware(
     }
 
     @VisibleForTesting
+    internal fun sendShownMessageTelemetry(messageId: String) {
+        Messaging.messageShown.record(Messaging.MessageShownExtra(messageId))
+    }
+
+    @VisibleForTesting
+    internal fun sendExpiredMessageTelemetry(messageId: String) {
+        Messaging.messageExpired.record(Messaging.MessageExpiredExtra(messageId))
+    }
+
+    @VisibleForTesting
     internal fun onMessageDismissed(
         context: AppStoreMiddlewareContext,
-        message: Message
+        message: Message,
     ) {
         val newMessages = removeMessage(context, message)
         context.dispatch(UpdateMessages(newMessages))
@@ -106,7 +117,7 @@ class MessagingMiddleware(
     @VisibleForTesting
     internal fun onMessageClicked(
         message: Message,
-        context: AppStoreMiddlewareContext
+        context: AppStoreMiddlewareContext,
     ) {
         // Update Nimbus storage.
         coroutineScope.launch {
@@ -122,7 +133,7 @@ class MessagingMiddleware(
     @VisibleForTesting
     internal fun consumeMessageToShowIfNeeded(
         context: AppStoreMiddlewareContext,
-        message: Message
+        message: Message,
     ) {
         if (context.state.messaging.messageToShow?.id == message.id) {
             context.dispatch(ConsumeMessageToShow)
@@ -132,7 +143,7 @@ class MessagingMiddleware(
     @VisibleForTesting
     internal fun removeMessage(
         context: AppStoreMiddlewareContext,
-        message: Message
+        message: Message,
     ): List<Message> {
         return context.state.messaging.messages.filter { it.id != message.id }
     }
@@ -141,7 +152,7 @@ class MessagingMiddleware(
     internal fun updateMessage(
         context: AppStoreMiddlewareContext,
         oldMessage: Message,
-        updatedMessage: Message
+        updatedMessage: Message,
     ): List<Message> {
         val actualMessageToShow = context.state.messaging.messageToShow
 

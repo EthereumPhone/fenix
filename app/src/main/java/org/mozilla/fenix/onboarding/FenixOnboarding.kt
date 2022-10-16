@@ -11,20 +11,27 @@ import androidx.annotation.VisibleForTesting
 import mozilla.components.support.ktx.android.content.PreferencesHolder
 import mozilla.components.support.ktx.android.content.intPreference
 import org.mozilla.fenix.ext.components
+import org.mozilla.fenix.ext.settings
 
 class FenixOnboarding(context: Context) : PreferencesHolder {
 
     private val strictMode = context.components.strictMode
+    private val settings = context.settings()
+
     override val preferences: SharedPreferences = strictMode.resetAfter(StrictMode.allowThreadDiskReads()) {
         context.getSharedPreferences(
             PREF_NAME_ONBOARDING_KEY,
-            Context.MODE_PRIVATE
+            Context.MODE_PRIVATE,
         )
     }
 
     private var onboardedVersion by intPreference(LAST_VERSION_ONBOARDING_KEY, default = 0)
 
     fun finish() {
+        // New users that goes through the first run onboarding do not need to see the home
+        // onboarding dialog.
+        settings.showHomeOnboardingDialog = false
+
         onboardedVersion = CURRENT_ONBOARDING_VERSION
     }
 

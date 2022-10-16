@@ -7,6 +7,7 @@ package org.mozilla.fenix.settings.autofill
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.NavController
 import androidx.preference.Preference
+import androidx.preference.SwitchPreference
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -17,8 +18,10 @@ import mozilla.components.support.test.robolectric.testContext
 import mozilla.components.support.test.rule.MainCoroutineRule
 import mozilla.components.support.test.rule.runTestOnMain
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -34,15 +37,17 @@ class AutofillSettingFragmentTest {
 
     @get:Rule
     val coroutinesTestRule = MainCoroutineRule()
-    private val testDispatcher = coroutinesTestRule.testDispatcher
     private lateinit var autofillSettingFragment: AutofillSettingFragment
     private val navController: NavController = mockk(relaxed = true)
 
     @Before
     fun setUp() = runTestOnMain {
         every { testContext.components.settings } returns mockk(relaxed = true)
+        every { testContext.components.core } returns mockk(relaxed = true)
+
         every { testContext.components.settings.addressFeature } returns true
         every { testContext.components.settings.shouldAutofillCreditCardDetails } returns true
+        every { testContext.components.settings.shouldAutofillAddressDetails } returns true
 
         autofillSettingFragment = AutofillSettingFragment()
 
@@ -59,7 +64,7 @@ class AutofillSettingFragmentTest {
         val preferenceTitle =
             testContext.getString(R.string.preferences_credit_cards_manage_saved_cards)
         val manageCardsPreference = autofillSettingFragment.findPreference<Preference>(
-            autofillSettingFragment.getPreferenceKey(R.string.pref_key_credit_cards_manage_cards)
+            autofillSettingFragment.getPreferenceKey(R.string.pref_key_credit_cards_manage_cards),
         )
 
         val creditCards: List<CreditCard> = listOf(mockk(), mockk())
@@ -69,7 +74,7 @@ class AutofillSettingFragmentTest {
 
         autofillSettingFragment.updateCardManagementPreference(
             store.state.creditCards.isNotEmpty(),
-            navController
+            navController,
         )
 
         assertNull(manageCardsPreference?.icon)
@@ -81,7 +86,7 @@ class AutofillSettingFragmentTest {
         val preferenceTitle =
             testContext.getString(R.string.preferences_credit_cards_add_credit_card)
         val manageCardsPreference = autofillSettingFragment.findPreference<Preference>(
-            autofillSettingFragment.getPreferenceKey(R.string.pref_key_credit_cards_manage_cards)
+            autofillSettingFragment.getPreferenceKey(R.string.pref_key_credit_cards_manage_cards),
         )
 
         val directions =
@@ -93,7 +98,7 @@ class AutofillSettingFragmentTest {
 
         autofillSettingFragment.updateCardManagementPreference(
             store.state.creditCards.isNotEmpty(),
-            navController
+            navController,
         )
 
         assertNotNull(manageCardsPreference?.icon)
@@ -109,7 +114,7 @@ class AutofillSettingFragmentTest {
         val preferenceTitle =
             testContext.getString(R.string.preferences_addresses_manage_addresses)
         val manageAddressesPreference = autofillSettingFragment.findPreference<Preference>(
-            autofillSettingFragment.getPreferenceKey(R.string.pref_key_addresses_manage_addresses)
+            autofillSettingFragment.getPreferenceKey(R.string.pref_key_addresses_manage_addresses),
         )
 
         val addresses: List<Address> = listOf(mockk(), mockk())
@@ -119,7 +124,7 @@ class AutofillSettingFragmentTest {
 
         autofillSettingFragment.updateAddressPreference(
             store.state.addresses.isNotEmpty(),
-            navController
+            navController,
         )
 
         assertNull(manageAddressesPreference?.icon)
@@ -130,7 +135,7 @@ class AutofillSettingFragmentTest {
         verify {
             navController.navigate(
                 AutofillSettingFragmentDirections
-                    .actionAutofillSettingFragmentToAddressManagementFragment()
+                    .actionAutofillSettingFragmentToAddressManagementFragment(),
             )
         }
     }
@@ -140,7 +145,7 @@ class AutofillSettingFragmentTest {
         val preferenceTitle =
             testContext.getString(R.string.preferences_addresses_add_address)
         val manageAddressesPreference = autofillSettingFragment.findPreference<Preference>(
-            autofillSettingFragment.getPreferenceKey(R.string.pref_key_addresses_manage_addresses)
+            autofillSettingFragment.getPreferenceKey(R.string.pref_key_addresses_manage_addresses),
         )
 
         val state = AutofillFragmentState()
@@ -148,7 +153,7 @@ class AutofillSettingFragmentTest {
 
         autofillSettingFragment.updateAddressPreference(
             store.state.addresses.isNotEmpty(),
-            navController
+            navController,
         )
 
         assertNotNull(manageAddressesPreference?.icon)
@@ -159,8 +164,64 @@ class AutofillSettingFragmentTest {
         verify {
             navController.navigate(
                 AutofillSettingFragmentDirections
-                    .actionAutofillSettingFragmentToAddressEditorFragment()
+                    .actionAutofillSettingFragmentToAddressEditorFragment(),
             )
         }
+    }
+
+    @Test
+    fun `GIVEN the autofill addresses feature is enabled THEN the addresses switch preference is checked`() = runTestOnMain {
+        every { testContext.components.settings.shouldAutofillAddressDetails } returns true
+
+        val autofillAddressesPreference = autofillSettingFragment.findPreference<SwitchPreference>(
+            autofillSettingFragment.getPreferenceKey(R.string.pref_key_addresses_save_and_autofill_addresses),
+        )
+
+        autofillSettingFragment.updateSaveAndAutofillAddressesSwitch()
+
+        assertNotNull(autofillAddressesPreference)
+        assertTrue(autofillAddressesPreference?.isChecked!!)
+    }
+
+    @Test
+    fun `GIVEN the autofill addresses feature is disabled THEN the addresses switch preference is NOT checked`() = runTestOnMain {
+        every { testContext.components.settings.shouldAutofillAddressDetails } returns false
+
+        val autofillAddressesPreference = autofillSettingFragment.findPreference<SwitchPreference>(
+            autofillSettingFragment.getPreferenceKey(R.string.pref_key_addresses_save_and_autofill_addresses),
+        )
+
+        autofillSettingFragment.updateSaveAndAutofillAddressesSwitch()
+
+        assertNotNull(autofillAddressesPreference)
+        assertFalse(autofillAddressesPreference?.isChecked!!)
+    }
+
+    @Test
+    fun `GIVEN the autofill cards feature is enabled THEN cards the switch preference is checked`() = runTestOnMain {
+        every { testContext.components.settings.shouldAutofillCreditCardDetails } returns true
+
+        val autofillCardsPreference = autofillSettingFragment.findPreference<SwitchPreference>(
+            autofillSettingFragment.getPreferenceKey(R.string.pref_key_credit_cards_save_and_autofill_cards),
+        )
+
+        autofillSettingFragment.updateSaveAndAutofillCardsSwitch()
+
+        assertNotNull(autofillCardsPreference)
+        assertTrue(autofillCardsPreference?.isChecked!!)
+    }
+
+    @Test
+    fun `GIVEN the autofill cards feature is disabled THEN the cards switch preference is NOT checked`() = runTestOnMain {
+        every { testContext.components.settings.shouldAutofillCreditCardDetails } returns false
+
+        val autofillCardsPreference = autofillSettingFragment.findPreference<SwitchPreference>(
+            autofillSettingFragment.getPreferenceKey(R.string.pref_key_credit_cards_save_and_autofill_cards),
+        )
+
+        autofillSettingFragment.updateSaveAndAutofillCardsSwitch()
+
+        assertNotNull(autofillCardsPreference)
+        assertFalse(autofillCardsPreference?.isChecked!!)
     }
 }

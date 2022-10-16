@@ -41,6 +41,7 @@ class BookmarkFragmentInteractor(
     }
 
     override fun onSearch() {
+        BookmarksManagement.searchIconTapped.record(NoExtras())
         bookmarksController.handleSearch()
     }
 
@@ -85,7 +86,8 @@ class BookmarkFragmentInteractor(
         }
         val eventType = when (nodes.singleOrNull()?.type) {
             BookmarkNodeType.ITEM,
-            BookmarkNodeType.SEPARATOR -> BookmarkRemoveType.SINGLE
+            BookmarkNodeType.SEPARATOR,
+            -> BookmarkRemoveType.SINGLE
             BookmarkNodeType.FOLDER -> BookmarkRemoveType.FOLDER
             null -> BookmarkRemoveType.MULTIPLE
         }

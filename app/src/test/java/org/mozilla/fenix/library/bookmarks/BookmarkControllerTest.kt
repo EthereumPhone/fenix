@@ -41,6 +41,7 @@ import org.mozilla.fenix.browser.browsingmode.BrowsingMode
 import org.mozilla.fenix.components.Services
 import org.mozilla.fenix.ext.bookmarkStorage
 import org.mozilla.fenix.ext.components
+import org.mozilla.fenix.utils.Settings
 
 @Suppress("TooManyFunctions", "LargeClass")
 class BookmarkControllerTest {
@@ -60,6 +61,7 @@ class BookmarkControllerTest {
     private val addNewTabUseCase: TabsUseCases.AddNewTabUseCase = mockk(relaxed = true)
     private val navBackStackEntry: NavBackStackEntry = mockk(relaxed = true)
     private val navDestination: NavDestination = mockk(relaxed = true)
+    private val settings: Settings = mockk(relaxed = true)
 
     private val item =
         BookmarkNode(BookmarkNodeType.ITEM, "456", "123", 0u, "Mozilla", "http://mozilla.org", 0, null)
@@ -73,7 +75,7 @@ class BookmarkControllerTest {
         "Firefox",
         "https://www.mozilla.org/en-US/firefox/",
         0,
-        null
+        null,
     )
     private val tree = BookmarkNode(
         BookmarkNodeType.FOLDER,
@@ -83,10 +85,17 @@ class BookmarkControllerTest {
         "Mobile",
         null,
         0,
-        listOf(item, item, childItem, subfolder)
+        listOf(item, item, childItem, subfolder),
     )
     private val root = BookmarkNode(
-        BookmarkNodeType.FOLDER, BookmarkRoot.Root.id, null, 0u, BookmarkRoot.Root.name, null, 0, null
+        BookmarkNodeType.FOLDER,
+        BookmarkRoot.Root.id,
+        null,
+        0u,
+        BookmarkRoot.Root.name,
+        null,
+        0,
+        null,
     )
 
     @Before
@@ -124,7 +133,7 @@ class BookmarkControllerTest {
                 item.url!!,
                 false,
                 BrowserDirection.FromBookmarks,
-                flags = flags
+                flags = flags,
             )
         }
     }
@@ -142,7 +151,7 @@ class BookmarkControllerTest {
                 item.url!!,
                 true,
                 BrowserDirection.FromBookmarks,
-                flags = flags
+                flags = flags,
             )
         }
     }
@@ -159,7 +168,7 @@ class BookmarkControllerTest {
                 item.url!!,
                 true,
                 BrowserDirection.FromBookmarks,
-                flags = flags
+                flags = flags,
             )
         }
     }
@@ -187,7 +196,7 @@ class BookmarkControllerTest {
             loadBookmarkNode = {
                 loadBookmarkNodeInvoked = true
                 tree
-            }
+            },
         ).handleBookmarkExpand(tree)
 
         assertTrue(loadBookmarkNodeInvoked)
@@ -213,9 +222,20 @@ class BookmarkControllerTest {
         verify {
             navController.navigate(
                 BookmarkFragmentDirections.actionBookmarkFragmentToBookmarkEditFragment(
-                    item.guid
+                    item.guid,
                 ),
-                null
+                null,
+            )
+        }
+    }
+
+    @Test
+    fun `WHEN handling search THEN navigate to the search dialog fragment`() {
+        createController().handleSearch()
+
+        verify {
+            navController.navigate(
+                BookmarkFragmentDirections.actionBookmarkFragmentToBookmarkSearchDialogFragment(),
             )
         }
     }
@@ -238,7 +258,7 @@ class BookmarkControllerTest {
             showSnackbar = {
                 assertEquals(errorMessage, it)
                 showSnackbarInvoked = true
-            }
+            },
         ).handleBookmarkSelected(root)
 
         assertTrue(showSnackbarInvoked)
@@ -271,7 +291,7 @@ class BookmarkControllerTest {
             showSnackbar = {
                 assertEquals(urlCopiedMessage, it)
                 showSnackbarInvoked = true
-            }
+            },
         ).handleCopyUrl(item)
 
         assertTrue(showSnackbarInvoked)
@@ -301,7 +321,7 @@ class BookmarkControllerTest {
                 item.url!!,
                 false,
                 BrowserDirection.FromBookmarks,
-                flags = flags
+                flags = flags,
             )
         }
     }
@@ -312,7 +332,7 @@ class BookmarkControllerTest {
         createController(
             showTabTray = {
                 showTabTrayInvoked = true
-            }
+            },
         ).handleOpeningBookmark(item, BrowsingMode.Normal)
 
         assertTrue(showTabTrayInvoked)
@@ -328,7 +348,7 @@ class BookmarkControllerTest {
         createController(
             showTabTray = {
                 showTabTrayInvoked = true
-            }
+            },
         ).handleOpeningBookmark(item, BrowsingMode.Private)
 
         assertTrue(showTabTrayInvoked)
@@ -346,7 +366,7 @@ class BookmarkControllerTest {
                 assertEquals(setOf(item), nodes)
                 assertEquals(BookmarkRemoveType.SINGLE, removeEvent)
                 deleteBookmarkNodesInvoked = true
-            }
+            },
         ).handleBookmarkDeletion(setOf(item), BookmarkRemoveType.SINGLE)
 
         assertTrue(deleteBookmarkNodesInvoked)
@@ -360,7 +380,7 @@ class BookmarkControllerTest {
                 assertEquals(setOf(item, subfolder), nodes)
                 assertEquals(BookmarkRemoveType.MULTIPLE, removeEvent)
                 deleteBookmarkNodesInvoked = true
-            }
+            },
         ).handleBookmarkDeletion(setOf(item, subfolder), BookmarkRemoveType.MULTIPLE)
 
         assertTrue(deleteBookmarkNodesInvoked)
@@ -373,7 +393,7 @@ class BookmarkControllerTest {
             deleteBookmarkFolder = { nodes ->
                 assertEquals(setOf(subfolder), nodes)
                 deleteBookmarkFolderInvoked = true
-            }
+            },
         ).handleBookmarkFolderDeletion(setOf(subfolder))
 
         assertTrue(deleteBookmarkFolderInvoked)
@@ -410,7 +430,7 @@ class BookmarkControllerTest {
         showSnackbar: (String) -> Unit = { _ -> },
         deleteBookmarkNodes: (Set<BookmarkNode>, BookmarkRemoveType) -> Unit = { _, _ -> },
         deleteBookmarkFolder: (Set<BookmarkNode>) -> Unit = { _ -> },
-        showTabTray: () -> Unit = { }
+        showTabTray: () -> Unit = { },
     ): BookmarkController {
         return DefaultBookmarkController(
             activity = homeActivity,
@@ -424,7 +444,8 @@ class BookmarkControllerTest {
             showSnackbar = showSnackbar,
             deleteBookmarkNodes = deleteBookmarkNodes,
             deleteBookmarkFolder = deleteBookmarkFolder,
-            showTabTray = showTabTray
+            showTabTray = showTabTray,
+            settings = settings,
         )
     }
 }

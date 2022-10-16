@@ -7,7 +7,7 @@ package org.mozilla.fenix.home.sessioncontrol
 import mozilla.components.feature.tab.collections.Tab
 import mozilla.components.feature.tab.collections.TabCollection
 import mozilla.components.feature.top.sites.TopSite
-import mozilla.components.service.pocket.PocketRecommendedStory
+import mozilla.components.service.pocket.PocketStory
 import org.mozilla.fenix.browser.browsingmode.BrowsingMode
 import org.mozilla.fenix.components.appstate.AppState
 import org.mozilla.fenix.gleanplumb.Message
@@ -18,15 +18,16 @@ import org.mozilla.fenix.home.recentbookmarks.RecentBookmark
 import org.mozilla.fenix.home.recentbookmarks.controller.RecentBookmarksController
 import org.mozilla.fenix.home.recentbookmarks.interactor.RecentBookmarksInteractor
 import org.mozilla.fenix.home.recentsyncedtabs.RecentSyncedTab
+import org.mozilla.fenix.home.recentsyncedtabs.controller.RecentSyncedTabController
+import org.mozilla.fenix.home.recentsyncedtabs.interactor.RecentSyncedTabInteractor
 import org.mozilla.fenix.home.recenttabs.RecentTab
 import org.mozilla.fenix.home.recenttabs.controller.RecentTabController
-import org.mozilla.fenix.home.recentsyncedtabs.controller.RecentSyncedTabController
 import org.mozilla.fenix.home.recenttabs.interactor.RecentTabInteractor
-import org.mozilla.fenix.home.recentsyncedtabs.interactor.RecentSyncedTabInteractor
 import org.mozilla.fenix.home.recentvisits.RecentlyVisitedItem.RecentHistoryGroup
 import org.mozilla.fenix.home.recentvisits.RecentlyVisitedItem.RecentHistoryHighlight
 import org.mozilla.fenix.home.recentvisits.controller.RecentVisitsController
 import org.mozilla.fenix.home.recentvisits.interactor.RecentVisitsInteractor
+import org.mozilla.fenix.wallpapers.WallpaperState
 
 /**
  * Interface for tab related actions in the [SessionControlInteractor].
@@ -164,10 +165,13 @@ interface OnboardingInteractor {
     fun onReadPrivacyNoticeClicked()
 
     /**
-     * Show the onboarding dialog to onboard users about recentTabs,recentBookmarks,
-     * historyMetadata and pocketArticles sections.
+     * Show Wallpapers onboarding dialog to onboard users about the feature if conditions are met.
+     * Returns true if the call has been passed down to the controller.
+     *
+     * @param state The wallpaper state.
+     * @return Whether the onboarding dialog is currently shown.
      */
-    fun showOnboardingDialog()
+    fun showWallpapersOnboardingDialog(state: WallpaperState): Boolean
 }
 
 interface CustomizeHomeIteractor {
@@ -239,11 +243,6 @@ interface MessageCardInteractor {
      * Called when close button on a [Message] card.
      */
     fun onMessageClosedClicked(message: Message)
-
-    /**
-     * Called when close button on a [Message] card.
-     */
-    fun onMessageDisplayed(message: Message)
 }
 
 /**
@@ -259,7 +258,7 @@ class SessionControlInteractor(
     private val recentSyncedTabController: RecentSyncedTabController,
     private val recentBookmarksController: RecentBookmarksController,
     private val recentVisitsController: RecentVisitsController,
-    private val pocketStoriesController: PocketStoriesController
+    private val pocketStoriesController: PocketStoriesController,
 ) : CollectionInteractor,
     OnboardingInteractor,
     TopSiteInteractor,
@@ -333,8 +332,8 @@ class SessionControlInteractor(
         controller.handleReadPrivacyNoticeClicked()
     }
 
-    override fun showOnboardingDialog() {
-        controller.handleShowOnboardingDialog()
+    override fun showWallpapersOnboardingDialog(state: WallpaperState): Boolean {
+        return controller.handleShowWallpapersOnboardingDialog(state)
     }
 
     override fun onToggleCollectionExpanded(collection: TabCollection, expand: Boolean) {
@@ -377,12 +376,12 @@ class SessionControlInteractor(
         recentTabController.handleRecentTabClicked(tabId)
     }
 
-    override fun onRecentSearchGroupClicked(tabId: String) {
-        recentTabController.handleRecentSearchGroupClicked(tabId)
-    }
-
     override fun onRecentTabShowAllClicked() {
         recentTabController.handleRecentTabShowAllClicked()
+    }
+
+    override fun onRecentTabLongClicked() {
+        recentTabController.handleRecentTabLongClicked()
     }
 
     override fun onRemoveRecentTab(tab: RecentTab.Tab) {
@@ -393,8 +392,16 @@ class SessionControlInteractor(
         recentSyncedTabController.handleRecentSyncedTabClick(tab)
     }
 
+    override fun onRecentSyncedTabLongClick() {
+        recentSyncedTabController.handleRecentSyncedTabLongClick()
+    }
+
     override fun onSyncedTabShowAllClicked() {
         recentSyncedTabController.handleSyncedTabShowAllClicked()
+    }
+
+    override fun onRemovedRecentSyncedTab(tab: RecentSyncedTab) {
+        recentSyncedTabController.handleRecentSyncedTabRemoved(tab)
     }
 
     override fun onRecentBookmarkClicked(bookmark: RecentBookmark) {
@@ -409,13 +416,17 @@ class SessionControlInteractor(
         recentBookmarksController.handleBookmarkRemoved(bookmark)
     }
 
+    override fun onRecentBookmarkLongClicked() {
+        recentBookmarksController.handleBookmarkLongClicked()
+    }
+
     override fun onHistoryShowAllClicked() {
         recentVisitsController.handleHistoryShowAllClicked()
     }
 
     override fun onRecentHistoryGroupClicked(recentHistoryGroup: RecentHistoryGroup) {
         recentVisitsController.handleRecentHistoryGroupClicked(
-            recentHistoryGroup
+            recentHistoryGroup,
         )
     }
 
@@ -431,11 +442,19 @@ class SessionControlInteractor(
         recentVisitsController.handleRemoveRecentHistoryHighlight(highlightUrl)
     }
 
+    override fun onRecentVisitLongClicked() {
+        recentVisitsController.handleRecentVisitLongClicked()
+    }
+
     override fun openCustomizeHomePage() {
         controller.handleCustomizeHomeTapped()
     }
 
-    override fun onStoriesShown(storiesShown: List<PocketRecommendedStory>) {
+    override fun onStoryShown(storyShown: PocketStory, storyPosition: Pair<Int, Int>) {
+        pocketStoriesController.handleStoryShown(storyShown, storyPosition)
+    }
+
+    override fun onStoriesShown(storiesShown: List<PocketStory>) {
         pocketStoriesController.handleStoriesShown(storiesShown)
     }
 
@@ -443,7 +462,7 @@ class SessionControlInteractor(
         pocketStoriesController.handleCategoryClick(categoryClicked)
     }
 
-    override fun onStoryClicked(storyClicked: PocketRecommendedStory, storyPosition: Pair<Int, Int>) {
+    override fun onStoryClicked(storyClicked: PocketStory, storyPosition: Pair<Int, Int>) {
         pocketStoriesController.handleStoryClicked(storyClicked, storyPosition)
     }
 
@@ -465,9 +484,5 @@ class SessionControlInteractor(
 
     override fun onMessageClosedClicked(message: Message) {
         controller.handleMessageClosed(message)
-    }
-
-    override fun onMessageDisplayed(message: Message) {
-        controller.handleMessageDisplayed(message)
     }
 }

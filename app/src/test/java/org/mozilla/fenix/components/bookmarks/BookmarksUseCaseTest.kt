@@ -44,9 +44,11 @@ class BookmarksUseCaseTest {
     fun `WHEN adding bookmark THEN new item is stored`() = runTest {
         val bookmarksStorage = mockk<BookmarksStorage>(relaxed = true)
         val historyStorage = mockk<HistoryStorage>(relaxed = true)
+        val bookmarkNode = mockk<BookmarkNode>()
         val useCase = BookmarksUseCase(bookmarksStorage, historyStorage)
 
-        coEvery { bookmarksStorage.getBookmarksWithUrl(any()) }.coAnswers { emptyList() }
+        every { bookmarkNode.url }.answers { "https://firefox.com" }
+        coEvery { bookmarksStorage.getBookmarksWithUrl(any()) }.coAnswers { listOf(bookmarkNode) }
 
         val result = useCase.addBookmark("https://mozilla.org", "Mozilla")
 
@@ -67,7 +69,7 @@ class BookmarksUseCaseTest {
             visitTime = 2,
             visitType = VisitType.LINK,
             previewImageUrl = "http://firefox.com/image1",
-            isRemote = false
+            isRemote = false,
         )
         val bookmarkNode = BookmarkNode(
             BookmarkNodeType.ITEM,
@@ -77,7 +79,7 @@ class BookmarksUseCaseTest {
             "Firefox",
             "https://www.firefox.com",
             0,
-            null
+            null,
         )
 
         coEvery {
@@ -88,7 +90,7 @@ class BookmarksUseCaseTest {
             bookmarksStorage.getRecentBookmarks(
                 any(),
                 any(),
-                any()
+                any(),
             )
         }.coAnswers { listOf(bookmarkNode) }
 
@@ -99,17 +101,17 @@ class BookmarksUseCaseTest {
                 RecentBookmark(
                     title = bookmarkNode.title,
                     url = bookmarkNode.url,
-                    previewImageUrl = visitInfo.previewImageUrl
-                )
+                    previewImageUrl = visitInfo.previewImageUrl,
+                ),
             ),
-            result
+            result,
         )
 
         coVerify {
             bookmarksStorage.getRecentBookmarks(
                 BookmarksUseCase.DEFAULT_BOOKMARKS_TO_RETRIEVE,
                 22,
-                any()
+                any(),
             )
         }
     }
@@ -130,7 +132,7 @@ class BookmarksUseCaseTest {
             bookmarksStorage.getRecentBookmarks(
                 BookmarksUseCase.DEFAULT_BOOKMARKS_TO_RETRIEVE,
                 TimeUnit.DAYS.toMillis(BookmarksUseCase.DEFAULT_BOOKMARKS_DAYS_AGE_TO_RETRIEVE),
-                any()
+                any(),
             )
         }
     }

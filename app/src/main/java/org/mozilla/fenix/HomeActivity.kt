@@ -52,6 +52,7 @@ import mozilla.components.concept.storage.BookmarkNode
 import mozilla.components.concept.storage.BookmarkNodeType
 import mozilla.components.concept.storage.HistoryMetadataKey
 import mozilla.components.feature.contextmenu.DefaultSelectionActionDelegate
+import mozilla.components.feature.media.ext.findActiveMediaTab
 import mozilla.components.feature.privatemode.notification.PrivateNotificationFeature
 import mozilla.components.feature.search.BrowserStoreSearchAdapter
 import mozilla.components.service.fxa.sync.SyncReason
@@ -100,6 +101,7 @@ import org.mozilla.fenix.library.history.HistoryFragmentDirections
 import org.mozilla.fenix.library.historymetadata.HistoryMetadataGroupFragmentDirections
 import org.mozilla.fenix.library.recentlyclosed.RecentlyClosedFragmentDirections
 import org.mozilla.fenix.onboarding.DefaultBrowserNotificationWorker
+import org.mozilla.fenix.onboarding.FenixOnboarding
 import org.mozilla.fenix.perf.MarkersActivityLifecycleCallbacks
 import org.mozilla.fenix.perf.MarkersFragmentLifecycleCallbacks
 import org.mozilla.fenix.perf.Performance
@@ -119,6 +121,7 @@ import org.mozilla.fenix.settings.logins.fragment.SavedLoginsAuthFragmentDirecti
 import org.mozilla.fenix.settings.search.AddSearchEngineFragmentDirections
 import org.mozilla.fenix.settings.search.EditCustomSearchEngineFragmentDirections
 import org.mozilla.fenix.settings.studies.StudiesFragmentDirections
+import org.mozilla.fenix.settings.wallpaper.WallpaperSettingsFragmentDirections
 import org.mozilla.fenix.share.AddNewDeviceFragmentDirections
 import org.mozilla.fenix.tabstray.TabsTrayFragment
 import org.mozilla.fenix.tabstray.TabsTrayFragmentDirections
@@ -126,6 +129,7 @@ import org.mozilla.fenix.theme.DefaultThemeManager
 import org.mozilla.fenix.theme.ThemeManager
 import org.mozilla.fenix.trackingprotection.TrackingProtectionPanelDialogFragmentDirections
 import org.mozilla.fenix.utils.BrowsersCache
+import org.mozilla.fenix.utils.ManufacturerCodes
 import org.mozilla.fenix.utils.Settings
 import java.lang.ref.WeakReference
 
@@ -169,6 +173,8 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity {
         supportFragmentManager.findFragmentById(R.id.container) as NavHostFragment
     }
 
+    private val onboarding by lazy { FenixOnboarding(applicationContext) }
+
     private val externalSourceIntentProcessors by lazy {
         listOf(
             HomeDeepLinkIntentProcessor(this),
@@ -176,7 +182,7 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity {
             StartSearchIntentProcessor(),
             OpenBrowserIntentProcessor(this, ::getIntentSessionId),
             OpenSpecificTabIntentProcessor(this),
-            DefaultBrowserIntentProcessor(this)
+            DefaultBrowserIntentProcessor(this),
         )
     }
 
@@ -214,8 +220,8 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity {
             message = "onCreate()",
             data = mapOf(
                 "recreated" to (savedInstanceState != null).toString(),
-                "intent" to (intent?.action ?: "null")
-            )
+                "intent" to (intent?.action ?: "null"),
+            ),
         )
 
         components.publicSuffixList.prefetch()
@@ -233,7 +239,7 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity {
         privateNotificationObserver = PrivateNotificationFeature(
             applicationContext,
             components.core.store,
-            PrivateNotificationService::class
+            PrivateNotificationService::class,
         ).also {
             it.start()
         }
@@ -250,14 +256,19 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity {
             StartOnHome.enterHomeScreen.record(NoExtras())
         }
 
+        if (settings().showHomeOnboardingDialog && onboarding.userHasBeenOnboarded()) {
+            navHost.navController.navigate(NavGraphDirections.actionGlobalHomeOnboardingDialog())
+        }
+
         Performance.processIntentIfPerformanceTest(intent, this)
 
         if (settings().isTelemetryEnabled) {
             lifecycle.addObserver(
                 BreadcrumbsRecorder(
                     components.analytics.crashReporter,
-                    navHost.navController, ::getBreadcrumbMessage
-                )
+                    navHost.navController,
+                    ::getBreadcrumbMessage,
+                ),
             )
 
             val safeIntent = intent?.toSafeIntent()
@@ -288,12 +299,30 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity {
             components.core.contileTopSitesUpdater.startPeriodicWork()
         }
 
-        if (settings().showPocketRecommendationsFeature) {
-            components.core.pocketStoriesService.startPeriodicStoriesRefresh()
+        // To assess whether the Pocket stories are to be downloaded or not multiple SharedPreferences
+        // are read possibly needing to load them on the current thread. Move that to a background thread.
+        lifecycleScope.launch(IO) {
+            if (settings().showPocketRecommendationsFeature) {
+                components.core.pocketStoriesService.startPeriodicStoriesRefresh()
+            }
+            if (settings().showPocketSponsoredStories) {
+                components.core.pocketStoriesService.startPeriodicSponsoredStoriesRefresh()
+            }
+        }
+
+        components.backgroundServices.accountManagerAvailableQueue.runIfReadyOrQueue {
+            lifecycleScope.launch(IO) {
+                // If we're authenticated, kick-off a sync and a device state refresh.
+                components.backgroundServices.accountManager.authenticatedAccount()?.let {
+                    components.backgroundServices.accountManager.syncNow(reason = SyncReason.Startup)
+                }
+            }
         }
 
         components.core.engine.profiler?.addMarker(
-            MarkersActivityLifecycleCallbacks.MARKER_NAME, startTimeProfiler, "HomeActivity.onCreate"
+            MarkersActivityLifecycleCallbacks.MARKER_NAME,
+            startTimeProfiler,
+            "HomeActivity.onCreate",
         )
         StartupTimeline.onActivityCreateEndHome(this) // DO NOT MOVE ANYTHING BELOW HERE.
     }
@@ -313,7 +342,7 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity {
             components.performance.visualCompletenessQueue,
             components.startupStateProvider,
             safeIntent,
-            binding.rootContainer
+            binding.rootContainer,
         )
     }
 
@@ -325,20 +354,8 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity {
         // Diagnostic breadcrumb for "Display already aquired" crash:
         // https://github.com/mozilla-mobile/android-components/issues/7960
         breadcrumb(
-            message = "onResume()"
+            message = "onResume()",
         )
-
-        components.backgroundServices.accountManagerAvailableQueue.runIfReadyOrQueue {
-            lifecycleScope.launch {
-                // If we're authenticated, kick-off a sync and a device state refresh.
-                components.backgroundServices.accountManager.authenticatedAccount()?.let {
-                    components.backgroundServices.accountManager.syncNow(
-                        SyncReason.Startup,
-                        debounce = true
-                    )
-                }
-            }
-        }
 
         lifecycleScope.launch(IO) {
             try {
@@ -366,12 +383,14 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity {
         // Diagnostic breadcrumb for "Display already aquired" crash:
         // https://github.com/mozilla-mobile/android-components/issues/7960
         breadcrumb(
-            message = "onStart()"
+            message = "onStart()",
         )
 
         ProfilerMarkers.homeActivityOnStart(binding.rootContainer, components.core.engine.profiler)
         components.core.engine.profiler?.addMarker(
-            MarkersActivityLifecycleCallbacks.MARKER_NAME, startProfilerTime, "HomeActivity.onStart"
+            MarkersActivityLifecycleCallbacks.MARKER_NAME,
+            startProfilerTime,
+            "HomeActivity.onStart",
         ) // DO NOT MOVE ANYTHING BELOW THIS addMarker CALL.
     }
 
@@ -383,8 +402,8 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity {
         breadcrumb(
             message = "onStop()",
             data = mapOf(
-                "finishing" to isFinishing.toString()
-            )
+                "finishing" to isFinishing.toString(),
+            ),
         )
     }
 
@@ -397,7 +416,7 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity {
             components.core.bookmarksStorage.getTree(BookmarkRoot.Root.id, true)?.let {
                 val desktopRootNode = DesktopFolders(
                     applicationContext,
-                    showMobileRoot = false
+                    showMobileRoot = false,
                 ).withOptionalDesktopFolders(it)
                 settings().desktopBookmarksSize = getBookmarkCount(desktopRootNode)
             }
@@ -414,8 +433,8 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity {
         breadcrumb(
             message = "onPause()",
             data = mapOf(
-                "finishing" to isFinishing.toString()
-            )
+                "finishing" to isFinishing.toString(),
+            ),
         )
 
         // Every time the application goes into the background, it is possible that the user
@@ -453,12 +472,13 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity {
         breadcrumb(
             message = "onDestroy()",
             data = mapOf(
-                "finishing" to isFinishing.toString()
-            )
+                "finishing" to isFinishing.toString(),
+            ),
         )
 
         components.core.contileTopSitesUpdater.stopPeriodicWork()
         components.core.pocketStoriesService.stopPeriodicStoriesRefresh()
+        components.core.pocketStoriesService.stopPeriodicSponsoredStoriesRefresh()
         privateNotificationObserver?.stop()
     }
 
@@ -468,7 +488,7 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity {
         // Diagnostic breadcrumb for "Display already aquired" crash:
         // https://github.com/mozilla-mobile/android-components/issues/7960
         breadcrumb(
-            message = "onConfigurationChanged()"
+            message = "onConfigurationChanged()",
         )
     }
 
@@ -476,7 +496,7 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity {
         // Diagnostic breadcrumb for "Display already aquired" crash:
         // https://github.com/mozilla-mobile/android-components/issues/7960
         breadcrumb(
-            message = "recreate()"
+            message = "recreate()",
         )
 
         super.recreate()
@@ -499,13 +519,18 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity {
         breadcrumb(
             message = "onNewIntent()",
             data = mapOf(
-                "intent" to intent.action.toString()
-            )
+                "intent" to intent.action.toString(),
+            ),
         )
+
+        val tab = components.core.store.state.findActiveMediaTab()
+        if (tab != null) {
+            components.useCases.sessionUseCases.exitFullscreen(tab.id)
+        }
 
         val intentProcessors =
             listOf(
-                CrashReporterIntentProcessor(components.appStore)
+                CrashReporterIntentProcessor(components.appStore),
             ) + externalSourceIntentProcessors
         val intentHandled =
             intentProcessors.any { it.process(intent, navHost.navController, this.intent) }
@@ -529,19 +554,19 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity {
         parent: View?,
         name: String,
         context: Context,
-        attrs: AttributeSet
+        attrs: AttributeSet,
     ): View? = when (name) {
         EngineView::class.java.name -> components.core.engine.createView(context, attrs).apply {
             selectionActionDelegate = DefaultSelectionActionDelegate(
                 BrowserStoreSearchAdapter(
                     components.core.store,
-                    tabId = getIntentSessionId(intent.toSafeIntent())
+                    tabId = getIntentSessionId(intent.toSafeIntent()),
                 ),
                 resources = context.resources,
                 shareTextClicked = { share(it) },
                 emailTextClicked = { email(it) },
                 callTextClicked = { call(it) },
-                actionSorter = ::actionSorter
+                actionSorter = ::actionSorter,
             )
         }.asView()
         else -> super.onCreateView(parent, name, context, attrs)
@@ -606,8 +631,7 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity {
             Build.VERSION.SDK_INT == Build.VERSION_CODES.N || Build.VERSION.SDK_INT == Build.VERSION_CODES.N_MR1
         // Huawei devices seem to have problems with onKeyLongPress
         // See https://github.com/mozilla-mobile/fenix/issues/13498
-        val isHuawei = Build.MANUFACTURER.equals("huawei", ignoreCase = true)
-        return isAndroidN || isHuawei
+        return isAndroidN || ManufacturerCodes.isHuawei
     }
 
     private fun handleBackLongPress(): Boolean {
@@ -739,7 +763,7 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity {
         NavigationUI.setupWithNavController(
             navigationToolbar,
             navHost.navController,
-            AppBarConfiguration.Builder(*topLevelDestinationIds).build()
+            AppBarConfiguration.Builder(*topLevelDestinationIds).build(),
         )
 
         navigationToolbar.setNavigationOnClickListener {
@@ -765,7 +789,7 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity {
         forceSearch: Boolean = false,
         flags: EngineSession.LoadUrlFlags = EngineSession.LoadUrlFlags.none(),
         requestDesktopMode: Boolean = false,
-        historyMetadata: HistoryMetadataKey? = null
+        historyMetadata: HistoryMetadataKey? = null,
     ) {
         openToBrowser(from, customTabSessionId)
         load(searchTermOrURL, newTab, engine, forceSearch, flags, requestDesktopMode, historyMetadata)
@@ -782,12 +806,14 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity {
 
     protected open fun getNavDirections(
         from: BrowserDirection,
-        customTabSessionId: String?
+        customTabSessionId: String?,
     ): NavDirections? = when (from) {
         BrowserDirection.FromGlobal ->
             NavGraphDirections.actionGlobalBrowser(customTabSessionId)
         BrowserDirection.FromHome ->
             HomeFragmentDirections.actionGlobalBrowser(customTabSessionId)
+        BrowserDirection.FromWallpaper ->
+            WallpaperSettingsFragmentDirections.actionGlobalBrowser(customTabSessionId)
         BrowserDirection.FromSearchDialog ->
             SearchDialogFragmentDirections.actionGlobalBrowser(customTabSessionId)
         BrowserDirection.FromSettings ->
@@ -831,7 +857,7 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity {
         BrowserDirection.FromRecentlyClosed ->
             RecentlyClosedFragmentDirections.actionGlobalBrowser(customTabSessionId)
         BrowserDirection.FromStudiesFragment -> StudiesFragmentDirections.actionGlobalBrowser(
-            customTabSessionId
+            customTabSessionId,
         )
     }
 
@@ -849,7 +875,7 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity {
         forceSearch: Boolean,
         flags: EngineSession.LoadUrlFlags = EngineSession.LoadUrlFlags.none(),
         requestDesktopMode: Boolean = false,
-        historyMetadata: HistoryMetadataKey? = null
+        historyMetadata: HistoryMetadataKey? = null,
     ) {
         val startTime = components.core.engine.profiler?.getProfilerTime()
         val mode = browsingModeManager.mode
@@ -868,12 +894,12 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity {
                     url = searchTermOrURL.toNormalizedUrl(),
                     flags = flags,
                     private = private,
-                    historyMetadata = historyMetadata
+                    historyMetadata = historyMetadata,
                 )
             } else {
                 components.useCases.sessionUseCases.loadUrl(
                     url = searchTermOrURL.toNormalizedUrl(),
-                    flags = flags
+                    flags = flags,
                 )
                 components.core.store.state.selectedTabId
             }
@@ -889,7 +915,7 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity {
                         SessionState.Source.Internal.UserEntered,
                         true,
                         mode.isPrivate,
-                        searchEngine = engine
+                        searchEngine = engine,
                     )
             } else {
                 components.useCases.searchUseCases.defaultSearch.invoke(searchTermOrURL, engine)
@@ -902,7 +928,7 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity {
             components.core.engine.profiler?.addMarker(
                 "HomeActivity.load",
                 startTime,
-                "newTab: $newTab"
+                "newTab: $newTab",
             )
         }
     }
@@ -972,7 +998,7 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity {
     private fun openPopup(webExtensionState: WebExtensionState) {
         val action = NavGraphDirections.actionGlobalWebExtensionActionPopupFragment(
             webExtensionId = webExtensionState.id,
-            webExtensionTitle = webExtensionState.name
+            webExtensionTitle = webExtensionState.name,
         )
         navHost.navController.navigate(action)
     }
@@ -988,7 +1014,7 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity {
     private fun captureSnapshotTelemetryMetrics() = CoroutineScope(IO).launch {
         // PWA
         val recentlyUsedPwaCount = components.core.webAppShortcutManager.recentlyUsedWebAppsCount(
-            activeThresholdMs = PWA_RECENTLY_USED_THRESHOLD
+            activeThresholdMs = PWA_RECENTLY_USED_THRESHOLD,
         )
         if (recentlyUsedPwaCount == 0) {
             Metrics.hasRecentPwas.set(false)
@@ -1029,7 +1055,7 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity {
             it.process(
                 intent,
                 navHost.navController,
-                this.intent
+                this.intent,
             )
         }
     }

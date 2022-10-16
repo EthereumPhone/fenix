@@ -16,6 +16,8 @@
     <string name="content_description_disable_private_browsing_button">Zakáže režim anonymního prohlížení</string>
     <!-- Placeholder text shown in the search bar before a user enters text -->
     <string name="search_hint">Zadejte hledání nebo adresu</string>
+    <!-- Placeholder text shown in the search bar when using application search engines -->
+    <string name="application_search_hint">Zadejte hledaný výraz</string>
     <!-- No Open Tabs Message Description -->
     <string name="no_open_tabs_description">Tady se zobrazí vaše otevřené panely.</string>
 
@@ -40,10 +42,6 @@
     <!-- Home - Recently saved bookmarks -->
     <!-- Title for the home screen section with recently saved bookmarks. -->
     <string name="recent_bookmarks_title">Naposledy přidané</string>
-    <!-- Content description for the recently saved bookmarks section on the home screen. -->
-    <string moz:removedIn="100" name="recently_saved_bookmarks_content_description" tools:ignore="UnusedResources">Naposledy uložené záložky</string>
-    <!-- Title for the button which navigates the user to show all of their saved bookmarks. -->
-    <string moz:removedIn="101" name="recently_saved_show_all" tools:ignore="UnusedResources">Zobrazit vše</string>
     <!-- Content description for the button which navigates the user to show all of their saved bookmarks. -->
     <string name="recently_saved_show_all_content_description_2">Zobrazit všechny uložené záložky</string>
 
@@ -76,6 +74,9 @@
     <string name="open_in_app_cfr_positive_button_text">Přejít do nastavení</string>
     <!-- Text for the negative action button -->
     <string name="open_in_app_cfr_negative_button_text">Zavřít</string>
+
+    <!-- Content description for close button used in "contextual feature recommendation" (CFR) popups -->
+    <string name="cfr_dismiss_button_default_content_description">Zavřít</string>
 
     <!-- Text for the info dialog when camera permissions have been denied but user tries to access a camera feature. -->
     <string name="camera_permissions_needed_message">Pro tuto funkci je potřeba povolit přístup k fotoaparátu. Ten můžete povolit v nastavení oprávnění aplikací v systému Android.</string>
@@ -243,8 +244,6 @@
     <string name="search_suggestions_onboarding_title">Chcete našeptávat dotazy pro vyhledávač také v anonymním prohlížení?</string>
     <!-- Search suggestion onboarding hint description text, first parameter is the name of the app defined in app_name (for example: Fenix)-->
     <string name="search_suggestions_onboarding_text">%s bude sdílet text zadávaný do adresního řádku s vaším výchozím vyhledávačem.</string>
-    <!-- Search suggestion onboarding hint Learn more link text -->
-    <string moz:RemovedIn="100" name="search_suggestions_onboarding_learn_more_link" tools:ignore="UnusedResources">Zjistit více</string>
 
     <!-- Search engine suggestion title text. The first parameter is the name of teh suggested engine-->
     <string name="search_engine_suggestions_title">Hledat na %s</string>
@@ -363,7 +362,9 @@
     <!-- Preference for settings related to visual options -->
     <string name="preferences_customize">Přizpůsobení</string>
     <!-- Preference description for banner about signing in -->
-    <string name="preferences_sign_in_description">S účtem Firefoxu můžete synchronizovat záložky, historii i další svá data</string>
+    <string moz:RemovedIn="104" name="preferences_sign_in_description" tools:ignore="UnusedResources">S účtem Firefoxu můžete synchronizovat záložky, historii i další svá data</string>
+    <!-- Preference description for banner about signing in -->
+    <string name="preferences_sign_in_description_2">Pro synchronizaci svých panelů, záložek, hesel a dalších věcí se přihlaste.</string>
     <!-- Preference shown instead of account display name while account profile information isn't available yet. -->
     <string name="preferences_account_default_name">Účet Firefoxu</string>
     <!-- Preference text for account title when there was an error syncing FxA -->
@@ -433,6 +434,8 @@
     <!-- Title for the customize home screen section with Pocket. -->
     <string name="customize_toggle_pocket">Pocket</string>
 
+    <!-- Title for the customize home screen section with sponsored Pocket stories. -->
+    <string name="customize_toggle_pocket_sponsored">Sponzorované články</string>
     <!-- Title for the opening wallpaper settings screen -->
     <string name="customize_wallpapers">Tapety</string>
     <!-- Title for the customize home screen section with sponsored shortcuts. -->
@@ -536,7 +539,9 @@
 
     <!-- Turn On Sync Preferences -->
     <!-- Header of the Turn on Sync preference view -->
-    <string name="preferences_sync">Zapnout synchronizaci</string>
+    <string moz:RemovedIn="104" name="preferences_sync" tools:ignore="UnusedResources">Zapnout synchronizaci</string>
+    <!-- Header of the Sync and save your data preference view -->
+    <string name="preferences_sync_2">Synchronizujte a ukládejte svá data</string>
     <!-- Preference for reconnecting to FxA sync -->
     <string name="preferences_sync_sign_in_to_reconnect">Pro opětovné připojení se přihlaste</string>
     <!-- Preference for removing FxA account -->
@@ -734,7 +739,7 @@
     <!-- Open tabs menu item to save tabs to collection -->
     <string name="tabs_menu_save_to_collection1">Uložit panely do sbírky</string>
     <!-- Content description (not visible, for screen readers etc.): Opens the tab menu when pressed -->
-    <string name="tab_menu">Nabídka panelů</string>
+    <string moz:RemovedIn="103" name="tab_menu" tools:ignore="UnusedResources">Nabídka panelů</string>
 
 
     <!-- Text for the menu button to delete a collection -->
@@ -760,7 +765,7 @@
     <string name="pwa_site_controls_title_private">%1$s (anonymní režim)</string>
 
     <!-- Title text for the normal tabs header in the tabs tray which are not part of any tab grouping. -->
-    <string name="tab_tray_header_title_1">Další panely</string>
+    <string moz:removedIn="104" name="tab_tray_header_title_1" tools:ignore="UnusedResources">Další panely</string>
 
     <!-- History -->
     <!-- Text for the button to search all history -->
@@ -794,6 +799,13 @@
     <string name="history_synced_from_other_devices">Synchronizované z jiného zařízení</string>
     <!-- The page title for browsing history coming from other devices. -->
     <string name="history_from_other_devices">Z jiných zařízení</string>
+
+    <!-- The synced history sign in dialog message -->
+    <string name="history_sign_in_message">Pro zobrazení historie prohlížení z vašich ostatních zařízení se prosím přihlaste.</string>
+    <!-- The synced history sign in dialog button text -->
+    <string name="history_sign_in_button">Přihlásit se</string>
+    <!-- The synced history sign in dialog create a new account link -->
+    <string name="history_sign_in_create_account"><![CDATA[<u>Nebo si vytvořte účet Firefox a začněte synchronizovat</u>]]></string>
 
     <!-- Downloads -->
     <!-- Text for the snackbar to confirm that multiple downloads items have been removed -->
@@ -1086,8 +1098,6 @@
     <string name="snackbar_tabs_closed">Panely byly zavřeny</string>
     <!-- Text shown in snackbar when user bookmarks a list of tabs -->
     <string name="snackbar_message_bookmarks_saved">Záložky uloženy</string>
-    <!-- Text shown in snackbar when user adds a site to top sites -->
-    <string moz:RemovedIn="101" name="snackbar_added_to_top_sites" tools:ignore="UnusedResources">Přidáno do top stránek</string>
     <!-- Text shown in snackbar when user adds a site to shortcuts -->
     <string name="snackbar_added_to_shortcuts">Přidáno do zkratek</string>
     <!-- Text shown in snackbar when user closes a private tab -->
@@ -1168,7 +1178,16 @@
     <string name="delete_browsing_data_on_quit_action">Ukončit</string>
 
     <!-- Dialog message to the user asking to delete browsing data. -->
-    <string name="delete_browsing_data_prompt_message">Opravdu chcete smazat všechna soukromá data?</string>
+    <string moz:removedIn="104" name="delete_browsing_data_prompt_message" tools:ignore="UnusedResources">Opravdu chcete smazat všechna soukromá data?</string>
+    <!-- Title text of a delete browsing data dialog. -->
+    <string name="delete_history_prompt_title">Časové období mazání</string>
+    <!-- Radio button in the delete browsing data dialog to delete history items for the last hour. -->
+    <string name="delete_history_prompt_button_last_hour">Poslední hodina</string>
+    <!-- Radio button in the delete browsing data dialog to delete history items for today and yesterday. -->
+    <string name="delete_history_prompt_button_today_and_yesterday">Dnešek a včerejšek</string>
+    <!-- Radio button in the delete browsing data dialog to delete all history. -->
+    <string name="delete_history_prompt_button_everything">Vše</string>
+
     <!-- Dialog message to the user asking to delete browsing data. Parameter will be replaced by app name. -->
     <string name="delete_browsing_data_prompt_message_3">%s smaže vybraná soukromá data.</string>
     <!-- Text for the cancel button for the data deletion dialog -->
@@ -1184,39 +1203,12 @@
     <!-- Text for the cancel button for the history group deletion dialog -->
     <string name="delete_history_group_prompt_cancel">Zrušit</string>
 
-    <!-- Tips -->
-    <!-- text for firefox preview moving tip header "Firefox Preview" and "Firefox Nightly" are intentionally hardcoded -->
-    <string moz:RemovedIn="100" name="tip_firefox_preview_moved_header" tools:ignore="UnusedResources">Firefox Preview je nyní Firefox Nightly</string>
-
-    <!-- text for firefox preview moving tip description -->
-    <string moz:RemovedIn="100" name="tip_firefox_preview_moved_description" tools:ignore="UnusedResources">Firefox Nightly je aktualizován každou noc a obsahuje nové experimentální funkce. Může však být méně stabilní. Stáhněte si náš beta prohlížeč pro stabilnější zážitek.</string>
-    <!-- text for firefox preview moving tip button. "Firefox for Android Beta" is intentionally hardcoded -->
-    <string moz:RemovedIn="100" name="tip_firefox_preview_moved_button_2" tools:ignore="UnusedResources">Získat Firefox Beta pro Android</string>
-
-    <!-- text for firefox preview moving tip header. "Firefox Nightly" is intentionally hardcoded -->
-    <string moz:RemovedIn="100" name="tip_firefox_preview_moved_header_preview_installed" tools:ignore="UnusedResources">Firefox Nightly se mění</string>
-    <!-- text for firefox preview moving tip description -->
-    <string moz:RemovedIn="100" name="tip_firefox_preview_moved_description_preview_installed" tools:ignore="UnusedResources">Tato aplikace už nebude nadále dostávat bezpečnostní aktualizace. Přestaňte ji prosím používat a nainstalujete si novou Nightly.
-        \n\nPro přesun svých záložek, přihlašovacích údajů a historie prohlížení si prosím založte účet Firefoxu.</string>
-    <!-- text for firefox preview moving tip button  -->
-    <string moz:RemovedIn="100" name="tip_firefox_preview_moved_button_preview_installed" tools:ignore="UnusedResources">Používejte novou Nightly</string>
-
-    <!-- text for firefox preview moving tip header. "Firefox Nightly" is intentionally hardcoded -->
-    <string moz:RemovedIn="100" name="tip_firefox_preview_moved_header_preview_not_installed" tools:ignore="UnusedResources">Firefox Nightly se mění</string>
-    <!-- text for firefox preview moving tip description -->
-    <string moz:RemovedIn="100" name="tip_firefox_preview_moved_description_preview_not_installed" tools:ignore="UnusedResources">Tato aplikace už nebude nadále dostávat bezpečnostní aktualizace. Přestaňte ji prosím používat a stáhněte si novou Nightly.
-        \n\nPro přesun svých záložek, přihlašovacích údajů a historie prohlížení si prosím založte účet Firefoxu.</string>
-    <!-- text for firefox preview moving tip button  -->
-    <string moz:RemovedIn="100" name="tip_firefox_preview_moved_button_preview_not_installed" tools:ignore="UnusedResources">Stáhněte si novou Nightly</string>
-
     <!-- Onboarding -->
     <!-- Text for onboarding welcome message
     The first parameter is the name of the app (e.g. Firefox Preview) -->
     <string name="onboarding_header">Vítá vás %s</string>
     <!-- text for the Firefox account onboarding sign in card header. The word "Firefox" should not be translated -->
     <string name="onboarding_account_sign_in_header_1">Synchronizace Firefoxu mezi zařízeními</string>
-    <!-- text for the Firefox account onboarding sign in card header. The first parameter is the name of the application.-->
-    <string moz:RemovedIn="100" name="onboarding_account_sign_in_header_2" tools:ignore="UnusedResources">Synchronizace aplikace %1$s mezi zařízeními</string>
     <!-- Text for the button to learn more about signing in to your Firefox account. The first parameter is the name of the application.-->
     <string name="onboarding_manual_sign_in_description_2">Přeneste si své záložky, historii a hesla do aplikace %1$s i na tomto zařízení.</string>
     <!-- text for the button to manually sign into Firefox account. -->
@@ -1554,6 +1546,11 @@
     <string name="preferences_addresses_add_address">Přidat adresu</string>
     <!-- Preference option for managing saved addresses -->
     <string name="preferences_addresses_manage_addresses">Správa adres</string>
+    <!-- Preference for saving and autofilling addresses -->
+    <string name="preferences_addresses_save_and_autofill_addresses">Ukládat a automaticky vyplňovat adresy</string>
+    <!-- Preference summary for saving and autofilling address data -->
+    <string name="preferences_addresses_save_and_autofill_addresses_summary">Zahrnuje informace jako čísla a e-mailové a doručovací adresy</string>
+
     <!-- Title of the "Add card" screen -->
     <string name="credit_cards_add_card">Přidat kartu</string>
     <!-- Title of the "Edit card" screen -->
@@ -1613,8 +1610,6 @@
     <string name="addresses_edit_address">Upravit adresu</string>
     <!-- Title of the "Manage addresses" screen -->
     <string name="addresses_manage_addresses">Správa adres</string>
-    <!-- The header for the full name of an address -->
-    <string moz:removedIn="102" name="addresses_full_name" tools:ignore="UnusedResources">Celé jméno</string>
     <!-- The header for the first name of an address -->
     <string name="addresses_first_name">Křestní jméno</string>
     <!-- The header for the middle name of an address -->
@@ -1625,10 +1620,14 @@
     <string name="addresses_street_address">Ulice</string>
     <!-- The header for the city of an address -->
     <string name="addresses_city">Město</string>
-    <!-- The header for the state of an address -->
+    <!-- The header for the subregion of an address when "state" should be used -->
     <string name="addresses_state">Stát</string>
+    <!-- The header for the subregion of an address when "province" should be used -->
+    <string name="addresses_province">Kraj</string>
     <!-- The header for the zip code of an address -->
     <string name="addresses_zip">PSČ</string>
+    <!-- The header for the country or region of an address -->
+    <string name="addresses_country">Země nebo oblast</string>
     <!-- The header for the phone number of an address -->
     <string name="addresses_phone">Telefon</string>
     <!-- The header for the email of an address -->
@@ -1684,20 +1683,6 @@
     <!-- Text shown when a user successfully deletes a custom search engine -->
     <string name="search_delete_search_engine_success_message">Vyhledávač %s odebrán</string>
 
-    <!-- Title text shown for the migration screen to the new browser. Placeholder replaced with app name -->
-    <string moz:removedIn="100" name="migration_title" tools:ignore="UnusedResources">Vítá vás úplně nová aplikace %s</string>
-
-    <!-- Description text followed by a list of things migrating (e.g. Bookmarks, History). Placeholder replaced with app name-->
-    <string moz:removedIn="100" name="migration_description" tools:ignore="UnusedResources">Zcela přepracovaný prohlížeč už na vás čeká. Je rychlejší a přináší funkce, která vám usnadní práci i zábavu.\n\nPočkejte, než se prohlížeč %s aktualizuje</string>
-    <!-- Text on the disabled button while in progress. Placeholder replaced with app name -->
-    <string moz:removedIn="100" name="migration_updating_app_button_text" tools:ignore="UnusedResources">Probíhá aktualizace aplikace %s…</string>
-    <!-- Text on the enabled button. Placeholder replaced with app name-->
-    <string moz:removedIn="100" name="migration_update_app_button" tools:ignore="UnusedResources">Spustit %s</string>
-    <!-- Accessibility description text for a completed migration item -->
-    <string moz:removedIn="100" name="migration_icon_description" tools:ignore="UnusedResources">Přesun dat dokončen</string>
-    <!--Text on list of migrated items (e.g. Settings, History, etc.)-->
-    <string moz:removedIn="100" name="migration_text_passwords" tools:ignore="UnusedResources">Hesla</string>
-
     <!-- Heading for the instructions to allow a permission -->
     <string name="phone_feature_blocked_intro">Pro povolení:</string>
     <!-- First step for the allowing a permission -->
@@ -1725,10 +1710,6 @@
     <string name="no_site_exceptions">Žádné výjimky</string>
     <!-- Bookmark deletion confirmation -->
     <string name="bookmark_deletion_confirmation">Opravdu chcete tuto záložku smazat?</string>
-    <!-- Browser menu button that adds a top site to the home fragment -->
-    <string moz:RemovedIn="101" name="browser_menu_add_to_top_sites" tools:ignore="UnusedResources">Přidat do top stránek</string>
-    <!-- Browser menu button that removes a top site from the home fragment -->
-    <string moz:RemovedIn="101" name="browser_menu_remove_from_top_sites" tools:ignore="UnusedResources">Odebrat z top stránek</string>
     <!-- Browser menu button that adds a shortcut to the home fragment -->
     <string name="browser_menu_add_to_shortcuts">Přidat do zkratek</string>
     <!-- Browser menu button that removes a shortcut from the home fragment -->
@@ -1791,8 +1772,6 @@
     <string name="synced_tabs_enable_tab_syncing">Zapněte nejdříve synchronizaci panelů.</string>
     <!-- Text displayed when user has no tabs that have been synced -->
     <string name="synced_tabs_no_tabs">Ve vašich zařízeních nejsou otevřené žádné panely.</string>
-    <!-- Text displayed when user has no tabs that have been synced. The first parameter is the name of the application.-->
-    <string moz:RemovedIn="100" name="synced_tabs_no_tabs_2" tools:ignore="UnusedResources">Ve vašich zařízeních nejsou v aplikaci %1$s otevřené žádné panely.</string>
     <!-- Text displayed in the synced tabs screen when a user is not signed in to Firefox Sync describing Synced Tabs -->
     <string name="synced_tabs_sign_in_message">Seznam panelů z ostatních zařízení.</string>
     <!-- Text displayed on a button in the synced tabs screen to link users to sign in when a user is not signed in to Firefox Sync -->
@@ -1807,12 +1786,8 @@
     <string name="synced_tabs_collapse_group">Sbalit skupinu synchronizovaných panelů</string>
 
     <!-- Top Sites -->
-    <!-- Title text displayed in the dialog when top sites limit is reached. -->
-    <string moz:RemovedIn="101" name="top_sites_max_limit_title" tools:ignore="UnusedResources">Dosažen limit počtu top stránek</string>
     <!-- Title text displayed in the dialog when shortcuts limit is reached. -->
     <string name="shortcut_max_limit_title">Dosažen maximální počet zkratek</string>
-    <!-- Content description text displayed in the dialog when top sites limit is reached. -->
-    <string moz:RemovedIn="101" name="top_sites_max_limit_content_2" tools:ignore="UnusedResources">Pro přidání další top stránky nejdříve nějakou odeberte. Stačí na ní podržet prst.</string>
     <!-- Content description text displayed in the dialog when shortcut limit is reached. -->
     <string name="shortcut_max_limit_content">Pro přidání další zkratky nejdříve nějakou odeberte. Stačí na ní podržet prst.</string>
     <!-- Confirmation dialog button text when top sites limit is reached. -->
@@ -1822,8 +1797,6 @@
     <string name="top_sites_toggle_top_recent_sites_4">Zkratky</string>
 	<!-- Title text displayed in the rename top site dialog. -->
 	<string name="top_sites_rename_dialog_title">Název</string>
-	<!-- Hint for renaming title of a top site -->
-	<string moz:RemovedIn="101" name="top_site_name_hint" tools:ignore="UnusedResources">Název top stránky</string>
     <!-- Hint for renaming title of a shortcut -->
     <string name="shortcut_name_hint">Název zkratky</string>
 	<!-- Button caption to confirm the renaming of the top site. -->
@@ -1843,6 +1816,11 @@
     <string name="inactive_tabs_title">Neaktivní panely</string>
     <!-- Content description for closing all inactive tabs -->
     <string name="inactive_tabs_delete_all">Zavřít všechny neaktivní panely</string>
+
+    <!-- Content description for expanding the inactive tabs section. -->
+    <string name="inactive_tabs_expand_content_description">Zobrazit neaktivní panely</string>
+    <!-- Content description for collapsing the inactive tabs section. -->
+    <string name="inactive_tabs_collapse_content_description">Skrýt neaktivní panely</string>
 
     <!-- Inactive tabs auto-close message in the tabs tray -->
     <!-- The header text of the auto-close message when the user is asked if they want to turn on the auto-closing of inactive tabs. -->
@@ -1884,8 +1862,12 @@
     <!-- Clickable text for opening an external link for more information about Pocket. -->
     <string name="pocket_stories_feature_learn_more">Zjistit více</string>
 
+    <!-- Text indicating that the Pocket story that also displays this text is a sponsored story by other 3rd party entity. -->
+    <string name="pocket_stories_sponsor_indication">Sponzorováno</string>
+
     <!-- Snackbar message for enrolling in a Nimbus experiment from the secret settings when Studies preference is Off.-->
     <string name="experiments_snackbar">Pro odesílání dat povolte telemetrii.</string>
     <!-- Snackbar button text to navigate to telemetry settings.-->
     <string name="experiments_snackbar_button">Přejít do nastavení</string>
+    <string name="firefox_suggest_header">Návrhy od Firefoxu</string>
 </resources>

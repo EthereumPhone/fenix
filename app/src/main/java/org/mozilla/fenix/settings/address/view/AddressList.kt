@@ -61,7 +61,7 @@ fun AddressList(
 @Preview
 @Composable
 private fun AddressListPreview() {
-    FirefoxTheme(theme = Theme.getTheme(isPrivate = false)) {
+    FirefoxTheme(theme = Theme.getTheme()) {
         Box(Modifier.background(FirefoxTheme.colors.layer2)) {
             AddressList(
                 addresses = listOf(
@@ -82,8 +82,8 @@ private fun AddressListPreview() {
                         timeCreated = 0L,
                         timeLastUsed = 0L,
                         timeLastModified = 0L,
-                        timesUsed = 0L
-                    )
+                        timesUsed = 0L,
+                    ),
                 ),
                 onAddressClick = {},
                 onAddAddressButtonClick = {},

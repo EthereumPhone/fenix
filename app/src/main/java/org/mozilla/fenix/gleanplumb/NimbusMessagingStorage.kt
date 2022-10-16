@@ -17,6 +17,19 @@ import org.mozilla.fenix.nimbus.Messaging
 import org.mozilla.fenix.nimbus.StyleData
 
 /**
+ * This ID must match the name given in the `nimbus.fml.yaml` file, which
+ * itself generates the classname for [org.mozilla.fenix.nimbus.Messaging].
+ *
+ * If that ever changes, it should also change here.
+ *
+ * This constant is the id for the messaging feature (the Nimbus feature). We declare it here
+ * so as to afford the best chance of it being changed if a rename operation is needed.
+ *
+ * It is used in the Studies view, to filter out any experiments which only use a messaging surface.
+ */
+const val MESSAGING_FEATURE_ID = "messaging"
+
+/**
  * Provides messages from [messagingFeature] and combine with the metadata store on [metadataStorage].
  */
 class NimbusMessagingStorage(
@@ -25,7 +38,7 @@ class NimbusMessagingStorage(
     private val reportMalformedMessage: (String) -> Unit,
     private val gleanPlumb: GleanPlumbInterface,
     private val messagingFeature: FeatureHolder<Messaging>,
-    private val attributeProvider: CustomAttributeProvider? = null
+    private val attributeProvider: CustomAttributeProvider? = null,
 ) {
     /**
      * Contains all malformed messages where they key can be the value or a trigger of the message
@@ -51,7 +64,7 @@ class NimbusMessagingStorage(
         val storageMetadata = metadataStorage.getMetadata()
 
         return nimbusMessages.mapNotNull { (key, value) ->
-            val action = sanitizeAction(key, value.action, nimbusActions) ?: return@mapNotNull null
+            val action = sanitizeAction(key, value.action, nimbusActions, value.isControl) ?: return@mapNotNull null
             Message(
                 id = key,
                 data = value,
@@ -59,7 +72,7 @@ class NimbusMessagingStorage(
                 style = nimbusStyles[value.style] ?: defaultStyle,
                 metadata = storageMetadata[key] ?: addMetadata(key),
                 triggers = sanitizeTriggers(key, value.trigger, nimbusTriggers)
-                    ?: return@mapNotNull null
+                    ?: return@mapNotNull null,
             )
         }.filter {
             it.maxDisplayCount >= it.metadata.displayCount &&
@@ -124,20 +137,25 @@ class NimbusMessagingStorage(
     internal fun sanitizeAction(
         messageId: String,
         unsafeAction: String,
-        nimbusActions: Map<String, String>
+        nimbusActions: Map<String, String>,
+        isControl: Boolean,
     ): String? {
-        return if (unsafeAction.startsWith("http")) {
-            unsafeAction
-        } else {
-            val safeAction = nimbusActions[unsafeAction]
-            if (safeAction.isNullOrBlank() || safeAction.isEmpty()) {
-                if (!malFormedMap.containsKey(unsafeAction)) {
-                    reportMalformedMessage(messageId)
-                }
-                malFormedMap[unsafeAction] = messageId
-                return null
+        return when {
+            unsafeAction.startsWith("http") -> {
+                unsafeAction
             }
-            safeAction
+            isControl -> "CONTROL_ACTION"
+            else -> {
+                val safeAction = nimbusActions[unsafeAction]
+                if (safeAction.isNullOrBlank() || safeAction.isEmpty()) {
+                    if (!malFormedMap.containsKey(unsafeAction)) {
+                        reportMalformedMessage(messageId)
+                    }
+                    malFormedMap[unsafeAction] = messageId
+                    return null
+                }
+                safeAction
+            }
         }
     }
 
@@ -145,7 +163,7 @@ class NimbusMessagingStorage(
     internal fun sanitizeTriggers(
         messageId: String,
         unsafeTriggers: List<String>,
-        nimbusTriggers: Map<String, String>
+        nimbusTriggers: Map<String, String>,
     ): List<String>? {
         return unsafeTriggers.map {
             val safeTrigger = nimbusTriggers[it]
@@ -179,7 +197,7 @@ class NimbusMessagingStorage(
     internal fun isMessageEligible(
         message: Message,
         helper: GleanPlumbMessageHelper,
-        jexlCache: MutableMap<String, Boolean> = mutableMapOf()
+        jexlCache: MutableMap<String, Boolean> = mutableMapOf(),
     ): Boolean {
         return message.triggers.all { condition ->
             jexlCache[condition]
@@ -206,7 +224,7 @@ class NimbusMessagingStorage(
         return metadataStorage.addMetadata(
             Message.Metadata(
                 id = id,
-            )
+            ),
         )
     }
 }

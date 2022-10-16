@@ -47,8 +47,11 @@ class DefaultCollectionCreationControllerTest {
     private lateinit var controller: DefaultCollectionCreationController
     private var dismissed = false
 
-    @MockK(relaxed = true) private lateinit var store: CollectionCreationStore
-    @MockK(relaxUnitFun = true) private lateinit var tabCollectionStorage: TabCollectionStorage
+    @MockK(relaxed = true)
+    private lateinit var store: CollectionCreationStore
+
+    @MockK(relaxUnitFun = true)
+    private lateinit var tabCollectionStorage: TabCollectionStorage
     private lateinit var browserStore: BrowserStore
 
     @Before
@@ -57,7 +60,7 @@ class DefaultCollectionCreationControllerTest {
 
         state = CollectionCreationState(
             tabCollections = emptyList(),
-            tabs = emptyList()
+            tabs = emptyList(),
         )
         every { store.state } answers { state }
 
@@ -71,7 +74,7 @@ class DefaultCollectionCreationControllerTest {
                 dismissed = true
             },
             tabCollectionStorage,
-            scope
+            scope,
         )
     }
 
@@ -81,7 +84,7 @@ class DefaultCollectionCreationControllerTest {
         val tab2 = createTab("https://www.mozilla.org", id = "session-2")
 
         browserStore.dispatch(
-            TabListAction.AddMultipleTabsAction(listOf(tab1, tab2))
+            TabListAction.AddMultipleTabsAction(listOf(tab1, tab2)),
         ).joinBlocking()
 
         coEvery { tabCollectionStorage.addTabsToCollection(any(), any()) } returns 1L
@@ -89,7 +92,7 @@ class DefaultCollectionCreationControllerTest {
 
         val tabs = listOf(
             Tab("session-1", "", "", ""),
-            Tab("null-session", "", "", "")
+            Tab("null-session", "", "", ""),
         )
 
         controller.saveCollectionName(tabs, "name")
@@ -97,8 +100,8 @@ class DefaultCollectionCreationControllerTest {
         assertTrue(dismissed)
         coVerify { tabCollectionStorage.createCollection("name", listOf(tab1)) }
 
-        assertTrue(Collections.saved.testHasValue())
-        val recordedEvents = Collections.saved.testGetValue()
+        assertNotNull(Collections.saved.testGetValue())
+        val recordedEvents = Collections.saved.testGetValue()!!
         assertEquals(1, recordedEvents.size)
         val eventExtra = recordedEvents.single().extra
         assertNotNull(eventExtra)
@@ -152,8 +155,8 @@ class DefaultCollectionCreationControllerTest {
 
         assertTrue(dismissed)
 
-        assertTrue(Collections.renamed.testHasValue())
-        val recordedEvents = Collections.renamed.testGetValue()
+        assertNotNull(Collections.renamed.testGetValue())
+        val recordedEvents = Collections.renamed.testGetValue()!!
         assertEquals(1, recordedEvents.size)
         assertNull(recordedEvents.single().extra)
 
@@ -188,11 +191,11 @@ class DefaultCollectionCreationControllerTest {
         val tab1 = createTab("https://www.mozilla.org", id = "session-1")
         val tab2 = createTab("https://www.mozilla.org", id = "session-2")
         browserStore.dispatch(
-            TabListAction.AddMultipleTabsAction(listOf(tab1, tab2))
+            TabListAction.AddMultipleTabsAction(listOf(tab1, tab2)),
         ).joinBlocking()
 
         val tabs = listOf(
-            Tab("session-1", "", "", "")
+            Tab("session-1", "", "", ""),
         )
         val collection = mockk<TabCollection>()
         coEvery { tabCollectionStorage.addTabsToCollection(any(), any()) } returns 1L
@@ -203,8 +206,8 @@ class DefaultCollectionCreationControllerTest {
         assertTrue(dismissed)
         coVerify { tabCollectionStorage.addTabsToCollection(collection, listOf(tab1)) }
 
-        assertTrue(Collections.tabsAdded.testHasValue())
-        val recordedEvents = Collections.tabsAdded.testGetValue()
+        assertNotNull(Collections.tabsAdded.testGetValue())
+        val recordedEvents = Collections.tabsAdded.testGetValue()!!
         assertEquals(1, recordedEvents.size)
         val eventExtra = recordedEvents.single().extra
         assertNotNull(eventExtra)
@@ -281,8 +284,8 @@ class DefaultCollectionCreationControllerTest {
                 },
                 mockk {
                     every { title } returns "Random Collection"
-                }
-            )
+                },
+            ),
         )
 
         controller.saveTabsToCollection(ArrayList())

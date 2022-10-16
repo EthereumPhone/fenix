@@ -21,14 +21,13 @@ import mozilla.components.support.test.ext.joinBlocking
 import mozilla.components.support.test.robolectric.testContext
 import mozilla.components.support.test.rule.MainCoroutineRule
 import mozilla.telemetry.glean.testing.GleanTestRule
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mozilla.fenix.GleanMetrics.RecentTabs
-import org.mozilla.fenix.GleanMetrics.SearchTerms
 import org.mozilla.fenix.R
 import org.mozilla.fenix.components.AppStore
 import org.mozilla.fenix.helpers.FenixRobolectricTestRunner
@@ -54,7 +53,7 @@ class RecentTabControllerTest {
     @Before
     fun setup() {
         store = BrowserStore(
-            BrowserState()
+            BrowserState(),
         )
         controller = spyk(
             DefaultRecentTabsController(
@@ -62,15 +61,15 @@ class RecentTabControllerTest {
                 navController = navController,
                 store = store,
                 appStore = appStore,
-            )
+            ),
         )
         every { navController.navigateUp() } returns true
     }
 
     @Test
     fun handleRecentTabClicked() {
-        assertFalse(RecentTabs.recentTabOpened.testHasValue())
-        assertFalse(RecentTabs.inProgressMediaTabOpened.testHasValue())
+        assertNull(RecentTabs.recentTabOpened.testGetValue())
+        assertNull(RecentTabs.inProgressMediaTabOpened.testGetValue())
 
         every { navController.currentDestination } returns mockk {
             every { id } returns R.id.homeFragment
@@ -78,7 +77,7 @@ class RecentTabControllerTest {
 
         val tab = createTab(
             url = "https://mozilla.org",
-            title = "Mozilla"
+            title = "Mozilla",
         )
         store.dispatch(TabListAction.AddTabAction(tab)).joinBlocking()
         store.dispatch(TabListAction.SelectTabAction(tab.id)).joinBlocking()
@@ -89,22 +88,23 @@ class RecentTabControllerTest {
             selectTabUseCase.selectTab.invoke(tab.id)
             navController.navigate(R.id.browserFragment)
         }
-        assertTrue(RecentTabs.recentTabOpened.testHasValue())
-        assertFalse(RecentTabs.inProgressMediaTabOpened.testHasValue())
+        assertNotNull(RecentTabs.recentTabOpened.testGetValue())
+        assertNull(RecentTabs.inProgressMediaTabOpened.testGetValue())
     }
 
     @Test
     fun handleRecentTabClickedForMediaTab() {
-        assertFalse(RecentTabs.recentTabOpened.testHasValue())
-        assertFalse(RecentTabs.inProgressMediaTabOpened.testHasValue())
+        assertNull(RecentTabs.recentTabOpened.testGetValue())
+        assertNull(RecentTabs.inProgressMediaTabOpened.testGetValue())
 
         every { navController.currentDestination } returns mockk {
             every { id } returns R.id.homeFragment
         }
 
         val inProgressMediaTab = createTab(
-            url = "mediaUrl", id = "2",
-            lastMediaAccessState = LastMediaAccessState("https://mozilla.com", 123, true)
+            url = "mediaUrl",
+            id = "2",
+            lastMediaAccessState = LastMediaAccessState("https://mozilla.com", 123, true),
         )
 
         store.dispatch(TabListAction.AddTabAction(inProgressMediaTab)).joinBlocking()
@@ -116,13 +116,13 @@ class RecentTabControllerTest {
             selectTabUseCase.selectTab.invoke(inProgressMediaTab.id)
             navController.navigate(R.id.browserFragment)
         }
-        assertFalse(RecentTabs.recentTabOpened.testHasValue())
-        assertTrue(RecentTabs.inProgressMediaTabOpened.testHasValue())
+        assertNull(RecentTabs.recentTabOpened.testGetValue())
+        assertNotNull(RecentTabs.inProgressMediaTabOpened.testGetValue())
     }
 
     @Test
     fun handleRecentTabShowAllClickedFromHome() {
-        assertFalse(RecentTabs.showAllClicked.testHasValue())
+        assertNull(RecentTabs.showAllClicked.testGetValue())
 
         every { navController.currentDestination } returns mockk {
             every { id } returns R.id.homeFragment
@@ -133,19 +133,19 @@ class RecentTabControllerTest {
         verify {
             controller.dismissSearchDialogIfDisplayed()
             navController.navigate(
-                match<NavDirections> { it.actionId == R.id.action_global_tabsTrayFragment }
+                match<NavDirections> { it.actionId == R.id.action_global_tabsTrayFragment },
             )
         }
         verify(exactly = 0) {
             navController.navigateUp()
         }
 
-        assertTrue(RecentTabs.showAllClicked.testHasValue())
+        assertNotNull(RecentTabs.showAllClicked.testGetValue())
     }
 
     @Test
     fun handleRecentTabShowAllClickedFromSearchDialog() {
-        assertFalse(RecentTabs.showAllClicked.testHasValue())
+        assertNull(RecentTabs.showAllClicked.testGetValue())
 
         every { navController.currentDestination } returns mockk {
             every { id } returns R.id.searchDialogFragment
@@ -157,27 +157,25 @@ class RecentTabControllerTest {
             controller.dismissSearchDialogIfDisplayed()
             navController.navigateUp()
             navController.navigate(
-                match<NavDirections> { it.actionId == R.id.action_global_tabsTrayFragment }
+                match<NavDirections> { it.actionId == R.id.action_global_tabsTrayFragment },
             )
         }
 
-        assertTrue(RecentTabs.showAllClicked.testHasValue())
+        assertNotNull(RecentTabs.showAllClicked.testGetValue())
     }
 
     @Test
-    fun `WHEN handleRecentSearchGroupClicked is called THEN navigate to the tabsTrayFragment and record the correct metric`() {
-        assertFalse(SearchTerms.jumpBackInGroupTapped.testHasValue())
+    fun `GIVEN search dialog is displayed WHEN long clicking a recent tab THEN search dialog is dismissed`() {
+        every { navController.currentDestination } returns mockk {
+            every { id } returns R.id.searchDialogFragment
+        }
+        every { navController.navigateUp() } returns true
 
-        controller.handleRecentSearchGroupClicked("1")
+        controller.handleRecentTabLongClicked()
 
         verify {
-            navController.navigate(
-                match<NavDirections> {
-                    it.actionId == R.id.action_global_tabsTrayFragment &&
-                        it.arguments["focusGroupTabId"] == "1"
-                }
-            )
+            controller.dismissSearchDialogIfDisplayed()
+            navController.navigateUp()
         }
-        assertTrue(SearchTerms.jumpBackInGroupTapped.testHasValue())
     }
 }

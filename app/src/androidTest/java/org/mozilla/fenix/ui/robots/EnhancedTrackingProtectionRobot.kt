@@ -13,9 +13,7 @@ import androidx.test.espresso.matcher.ViewMatchers
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
-import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
-import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.UiSelector
 import androidx.test.uiautomator.Until
 import junit.framework.TestCase.assertTrue
@@ -24,6 +22,7 @@ import org.hamcrest.Matchers.not
 import org.mozilla.fenix.R
 import org.mozilla.fenix.helpers.TestAssetHelper.waitingTime
 import org.mozilla.fenix.helpers.TestHelper.getStringResource
+import org.mozilla.fenix.helpers.TestHelper.mDevice
 import org.mozilla.fenix.helpers.TestHelper.packageName
 import org.mozilla.fenix.helpers.click
 import org.mozilla.fenix.helpers.ext.waitNotNull
@@ -33,9 +32,6 @@ import org.mozilla.fenix.helpers.isChecked
  * Implementation of Robot Pattern for Enhanced Tracking Protection UI.
  */
 class EnhancedTrackingProtectionRobot {
-
-    val mDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())!!
-
     fun verifyEnhancedTrackingProtectionSheetStatus(status: String, state: Boolean) =
         assertEnhancedTrackingProtectionSheetStatus(status, state)
 
@@ -63,10 +59,10 @@ class EnhancedTrackingProtectionRobot {
                         containsString(
                             "social-track-digest256.dummytracker.org\n" +
                                 "ads-track-digest256.dummytracker.org\n" +
-                                "analytics-track-digest256.dummytracker.org"
-                        )
-                    )
-                )
+                                "analytics-track-digest256.dummytracker.org",
+                        ),
+                    ),
+                ),
             )
     }
 
@@ -134,9 +130,9 @@ private fun assertEnhancedTrackingProtectionSheetStatus(status: String, state: B
     onView(ViewMatchers.withResourceName("switch_widget")).check(
         matches(
             isChecked(
-                state
-            )
-        )
+                state,
+            ),
+        ),
     )
 }
 
@@ -153,8 +149,8 @@ private fun enhancedTrackingProtectionSwitch() =
 private fun trackingProtectionSettingsButton() =
     onView(withId(R.id.protection_settings)).inRoot(RootMatchers.isDialog()).check(
         matches(
-            isDisplayed()
-        )
+            isDisplayed(),
+        ),
     )
 
 private fun openEnhancedTrackingProtectionDetails() =
@@ -184,7 +180,7 @@ private fun assertCryptominersBlocked() {
 private fun assertTrackingContentBlocked() {
     assertTrue(
         mDevice.findObject(UiSelector().resourceId("$packageName:id/tracking_content"))
-            .waitForExists(waitingTime)
+            .waitForExists(waitingTime),
     )
 }
 
@@ -195,7 +191,7 @@ private fun assertSecuritySheetIsCompletelyDisplayed() {
         .waitForExists(waitingTime)
     assertTrue(
         mDevice.findObject(
-            UiSelector().resourceId("$packageName:id/quick_action_sheet")
-        ).waitForExists(waitingTime)
+            UiSelector().resourceId("$packageName:id/quick_action_sheet"),
+        ).waitForExists(waitingTime),
     )
 }

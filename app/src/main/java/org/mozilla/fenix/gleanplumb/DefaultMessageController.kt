@@ -14,7 +14,6 @@ import org.mozilla.fenix.HomeActivity
 import org.mozilla.fenix.components.AppStore
 import org.mozilla.fenix.components.appstate.AppAction.MessagingAction.MessageClicked
 import org.mozilla.fenix.components.appstate.AppAction.MessagingAction.MessageDismissed
-import org.mozilla.fenix.components.appstate.AppAction.MessagingAction.MessageDisplayed
 
 /**
  * Handles default interactions with the ui of GleanPlumb messages.
@@ -22,7 +21,7 @@ import org.mozilla.fenix.components.appstate.AppAction.MessagingAction.MessageDi
 class DefaultMessageController(
     private val appStore: AppStore,
     private val messagingStorage: NimbusMessagingStorage,
-    private val homeActivity: HomeActivity
+    private val homeActivity: HomeActivity,
 ) : MessageController {
 
     override fun onMessagePressed(message: Message) {
@@ -32,8 +31,8 @@ class DefaultMessageController(
         Messaging.messageClicked.record(
             Messaging.MessageClickedExtra(
                 messageKey = message.id,
-                actionUuid = uuid
-            )
+                actionUuid = uuid,
+            ),
         )
         handleAction(action)
         appStore.dispatch(MessageClicked(message))
@@ -42,14 +41,6 @@ class DefaultMessageController(
     override fun onMessageDismissed(message: Message) {
         Messaging.messageDismissed.record(Messaging.MessageDismissedExtra(message.id))
         appStore.dispatch(MessageDismissed(message))
-    }
-
-    override fun onMessageDisplayed(message: Message) {
-        if (message.maxDisplayCount <= message.metadata.displayCount + 1) {
-            Messaging.messageExpired.record(Messaging.MessageExpiredExtra(message.id))
-        }
-        Messaging.messageShown.record(Messaging.MessageShownExtra(message.id))
-        appStore.dispatch(MessageDisplayed(message))
     }
 
     @VisibleForTesting

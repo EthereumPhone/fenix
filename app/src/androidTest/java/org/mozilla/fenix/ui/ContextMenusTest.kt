@@ -9,7 +9,6 @@ import androidx.test.uiautomator.UiDevice
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mozilla.fenix.customannotations.SmokeTest
@@ -37,11 +36,11 @@ import org.mozilla.fenix.ui.robots.navigationToolbar
  */
 
 class ContextMenusTest {
-    private val mDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
+    private lateinit var mDevice: UiDevice
     private lateinit var mockWebServer: MockWebServer
 
     @get:Rule
-    val activityIntentTestRule = HomeActivityIntentTestRule()
+    val activityIntentTestRule = HomeActivityIntentTestRule.withDefaultSettingsOverrides()
 
     @Rule
     @JvmField
@@ -50,6 +49,7 @@ class ContextMenusTest {
     @Before
     fun setUp() {
         activityIntentTestRule.activity.applicationContext.settings().shouldShowJumpBackInCFR = false
+        mDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
         mockWebServer = MockWebServer().apply {
             dispatcher = AndroidAssetDispatcher()
             start()
@@ -242,7 +242,6 @@ class ContextMenusTest {
         }
     }
 
-    @Ignore("Failing, see: https://github.com/mozilla-mobile/fenix/issues/24457")
     @SmokeTest
     @Test
     fun selectAndSearchTextTest() {

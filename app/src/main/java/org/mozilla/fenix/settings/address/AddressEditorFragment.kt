@@ -9,6 +9,8 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
+import androidx.core.view.MenuProvider
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -17,6 +19,7 @@ import org.mozilla.fenix.R
 import org.mozilla.fenix.SecureFragment
 import org.mozilla.fenix.databinding.FragmentAddressEditorBinding
 import org.mozilla.fenix.ext.components
+import org.mozilla.fenix.ext.requireComponents
 import org.mozilla.fenix.ext.showToolbar
 import org.mozilla.fenix.settings.address.controller.DefaultAddressEditorController
 import org.mozilla.fenix.settings.address.interactor.AddressEditorInteractor
@@ -26,7 +29,7 @@ import org.mozilla.fenix.settings.address.view.AddressEditorView
 /**
  * Displays an address editor for adding and editing an address.
  */
-class AddressEditorFragment : SecureFragment(R.layout.fragment_address_editor) {
+class AddressEditorFragment : SecureFragment(R.layout.fragment_address_editor), MenuProvider {
 
     private lateinit var addressEditorView: AddressEditorView
     private lateinit var interactor: AddressEditorInteractor
@@ -43,6 +46,7 @@ class AddressEditorFragment : SecureFragment(R.layout.fragment_address_editor) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        requireActivity().addMenuProvider(this, viewLifecycleOwner, Lifecycle.State.RESUMED)
 
         val storage = requireContext().components.core.autofillStorage
 
@@ -50,14 +54,14 @@ class AddressEditorFragment : SecureFragment(R.layout.fragment_address_editor) {
             controller = DefaultAddressEditorController(
                 storage = storage,
                 lifecycleScope = lifecycleScope,
-                navController = findNavController()
-            )
+                navController = findNavController(),
+            ),
         )
 
         val binding = FragmentAddressEditorBinding.bind(view)
-        setHasOptionsMenu(true)
 
-        addressEditorView = AddressEditorView(binding, interactor, args.address)
+        val searchRegion = requireComponents.core.store.state.search.region
+        addressEditorView = AddressEditorView(binding, interactor, searchRegion, args.address)
         addressEditorView.bind()
     }
 
@@ -80,14 +84,14 @@ class AddressEditorFragment : SecureFragment(R.layout.fragment_address_editor) {
         this.view?.hideKeyboard()
     }
 
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+    override fun onCreateMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.address_editor, menu)
         this.menu = menu
 
         menu.findItem(R.id.delete_address_button).isVisible = isEditing
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
+    override fun onMenuItemSelected(item: MenuItem): Boolean = when (item.itemId) {
         R.id.delete_address_button -> {
             args.address?.let {
                 addressEditorView.showConfirmDeleteAddressDialog(requireContext(), it.guid)

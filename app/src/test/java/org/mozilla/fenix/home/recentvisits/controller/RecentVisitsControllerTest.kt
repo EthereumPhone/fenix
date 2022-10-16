@@ -26,8 +26,8 @@ import mozilla.components.service.glean.testing.GleanTestRule
 import mozilla.components.support.test.robolectric.testContext
 import mozilla.components.support.test.rule.MainCoroutineRule
 import mozilla.components.support.test.rule.runTestOnMain
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -47,6 +47,7 @@ class RecentVisitsControllerTest {
 
     @get:Rule
     val gleanTestRule = GleanTestRule(testContext)
+
     @get:Rule
     val coroutinesTestRule = MainCoroutineRule()
     private val scope = coroutinesTestRule.scope
@@ -77,7 +78,7 @@ class RecentVisitsControllerTest {
                 navController = navController,
                 scope = scope,
                 storage = storage,
-            )
+            ),
         )
     }
 
@@ -88,7 +89,7 @@ class RecentVisitsControllerTest {
         verify {
             controller.dismissSearchDialogIfDisplayed()
             navController.navigate(
-                HomeFragmentDirections.actionGlobalHistoryFragment()
+                HomeFragmentDirections.actionGlobalHistoryFragment(),
             )
         }
     }
@@ -102,18 +103,18 @@ class RecentVisitsControllerTest {
             updatedAt = System.currentTimeMillis(),
             totalViewTime = 10,
             documentType = DocumentType.Regular,
-            previewImageUrl = null
+            previewImageUrl = null,
         )
         val historyGroup = RecentHistoryGroup(
             title = "mozilla",
-            historyMetadata = listOf(historyEntry)
+            historyMetadata = listOf(historyEntry),
         )
 
         controller.handleRecentHistoryGroupClicked(historyGroup)
 
         verify {
             navController.navigate(
-                match<NavDirections> { it.actionId == R.id.action_global_history_metadata_group }
+                match<NavDirections> { it.actionId == R.id.action_global_history_metadata_group },
             )
         }
     }
@@ -123,7 +124,7 @@ class RecentVisitsControllerTest {
         val historyMetadataKey = HistoryMetadataKey(
             "http://www.mozilla.com",
             "mozilla",
-            null
+            null,
         )
 
         val historyGroup = RecentHistoryGroup(
@@ -136,11 +137,11 @@ class RecentVisitsControllerTest {
                     updatedAt = System.currentTimeMillis(),
                     totalViewTime = 10,
                     documentType = DocumentType.Regular,
-                    previewImageUrl = null
-                )
-            )
+                    previewImageUrl = null,
+                ),
+            ),
         )
-        assertFalse(RecentSearches.groupDeleted.testHasValue())
+        assertNull(RecentSearches.groupDeleted.testGetValue())
 
         controller.handleRemoveRecentHistoryGroup(historyGroup.title)
 
@@ -149,7 +150,7 @@ class RecentVisitsControllerTest {
             store.dispatch(HistoryMetadataAction.DisbandSearchGroupAction(searchTerm = historyGroup.title))
             appStore.dispatch(AppAction.DisbandSearchGroupAction(searchTerm = historyGroup.title))
         }
-        assertTrue(RecentSearches.groupDeleted.testHasValue())
+        assertNotNull(RecentSearches.groupDeleted.testGetValue())
 
         coVerify {
             storage.deleteHistoryMetadata(historyGroup.title)
@@ -178,6 +179,20 @@ class RecentVisitsControllerTest {
             scope.launch {
                 storage.deleteHistoryMetadataForUrl(highlightUrl)
             }
+        }
+    }
+
+    @Test
+    fun `WHEN long clicking a recent visit THEN search dialog should be dismissed `() = runTestOnMain {
+        every { navController.currentDestination } returns mockk {
+            every { id } returns R.id.searchDialogFragment
+        }
+
+        controller.handleRecentVisitLongClicked()
+
+        verify {
+            controller.dismissSearchDialogIfDisplayed()
+            navController.navigateUp()
         }
     }
 }

@@ -30,7 +30,6 @@ import mozilla.components.support.ktx.android.view.showKeyboard
 import mozilla.components.support.ktx.kotlin.isUrl
 import mozilla.telemetry.glean.private.NoExtras
 import org.mozilla.fenix.BrowserDirection
-import org.mozilla.fenix.FeatureFlags
 import org.mozilla.fenix.GleanMetrics.Collections
 import org.mozilla.fenix.GleanMetrics.Events
 import org.mozilla.fenix.GleanMetrics.HomeScreen
@@ -57,9 +56,12 @@ import org.mozilla.fenix.gleanplumb.MessageController
 import org.mozilla.fenix.home.HomeFragment
 import org.mozilla.fenix.home.HomeFragmentDirections
 import org.mozilla.fenix.home.Mode
+import org.mozilla.fenix.onboarding.WallpaperOnboardingDialogFragment.Companion.THUMBNAILS_SELECTION_COUNT
 import org.mozilla.fenix.settings.SupportUtils
 import org.mozilla.fenix.settings.SupportUtils.SumoTopic.PRIVATE_BROWSING_MYTHS
 import org.mozilla.fenix.utils.Settings
+import org.mozilla.fenix.wallpapers.Wallpaper
+import org.mozilla.fenix.wallpapers.WallpaperState
 import mozilla.components.feature.tab.collections.Tab as ComponentTab
 
 /**
@@ -189,11 +191,6 @@ interface SessionControlController {
     fun handleMessageClosed(message: Message)
 
     /**
-     * @see [MessageCardInteractor.onMessageDisplayed]
-     */
-    fun handleMessageDisplayed(message: Message)
-
-    /**
      * @see [TabSessionInteractor.onPrivateModeButtonClicked]
      */
     fun handlePrivateModeButtonClicked(newMode: BrowsingMode, userHasBeenOnboarded: Boolean)
@@ -204,9 +201,9 @@ interface SessionControlController {
     fun handleCustomizeHomeTapped()
 
     /**
-     * @see [OnboardingInteractor.showOnboardingDialog]
+     * @see [OnboardingInteractor.showWallpapersOnboardingDialog]
      */
-    fun handleShowOnboardingDialog()
+    fun handleShowWallpapersOnboardingDialog(state: WallpaperState): Boolean
 
     /**
      * @see [SessionControlInteractor.reportSessionMetrics]
@@ -232,14 +229,14 @@ class DefaultSessionControlController(
     private val hideOnboarding: () -> Unit,
     private val registerCollectionStorageObserver: () -> Unit,
     private val removeCollectionWithUndo: (tabCollection: TabCollection) -> Unit,
-    private val showTabTray: () -> Unit
+    private val showTabTray: () -> Unit,
 ) : SessionControlController {
 
     override fun handleCollectionAddTabTapped(collection: TabCollection) {
         Collections.addTabButton.record(NoExtras())
         showCollectionCreationFragment(
             step = SaveCollectionStep.SelectTabs,
-            selectedTabCollectionId = collection.id
+            selectedTabCollectionId = collection.id,
         )
     }
 
@@ -263,9 +260,9 @@ class DefaultSessionControlController(
                 activity.openToBrowserAndLoad(
                     searchTermOrURL = tab.url,
                     newTab = true,
-                    from = BrowserDirection.FromHome
+                    from = BrowserDirection.FromHome,
                 )
-            }
+            },
         )
 
         Collections.tabRestored.record(NoExtras())
@@ -278,7 +275,7 @@ class DefaultSessionControlController(
             collection,
             onFailure = { url ->
                 addTabUseCase.invoke(url)
-            }
+            },
         )
 
         showTabTray()
@@ -288,7 +285,7 @@ class DefaultSessionControlController(
     override fun handleCollectionRemoveTab(
         collection: TabCollection,
         tab: ComponentTab,
-        wasSwiped: Boolean
+        wasSwiped: Boolean,
     ) {
         Collections.tabRemoved.record(NoExtras())
 
@@ -305,7 +302,7 @@ class DefaultSessionControlController(
         dismissSearchDialogIfDisplayed()
         showShareFragment(
             collection.title,
-            collection.tabs.map { ShareData(url = it.url, title = it.title) }
+            collection.tabs.map { ShareData(url = it.url, title = it.title) },
         )
         Collections.shared.record(NoExtras())
     }
@@ -326,7 +323,7 @@ class DefaultSessionControlController(
             openToBrowserAndLoad(
                 searchTermOrURL = topSite.url,
                 newTab = true,
-                from = BrowserDirection.FromHome
+                from = BrowserDirection.FromHome,
             )
         }
     }
@@ -336,7 +333,7 @@ class DefaultSessionControlController(
         activity.openToBrowserAndLoad(
             searchTermOrURL = SupportUtils.getGenericSumoURLForTopic(PRIVATE_BROWSING_MYTHS),
             newTab = true,
-            from = BrowserDirection.FromHome
+            from = BrowserDirection.FromHome,
         )
     }
 
@@ -358,7 +355,7 @@ class DefaultSessionControlController(
                             updateTopSites(
                                 topSite,
                                 topSiteLabelEditText.text.toString(),
-                                topSite.url
+                                topSite.url,
                             )
                         }
                     }
@@ -392,7 +389,7 @@ class DefaultSessionControlController(
     override fun handleRenameCollectionTapped(collection: TabCollection) {
         showCollectionCreationFragment(
             step = SaveCollectionStep.RenameCollection,
-            selectedTabCollectionId = collection.id
+            selectedTabCollectionId = collection.id,
         )
         Collections.renameButton.record(NoExtras())
     }
@@ -426,14 +423,14 @@ class DefaultSessionControlController(
             MetricsUtils.recordSearchMetrics(
                 searchEngine,
                 searchEngine == store.state.search.selectedOrDefaultSearchEngine,
-                searchAccessPoint
+                searchAccessPoint,
             )
         }
 
         val tabId = addTabUseCase.invoke(
             url = appendSearchAttributionToUrlIfNeeded(topSite.url),
             selectTab = true,
-            startLoading = true
+            startLoading = true,
         )
 
         if (settings.openNextTabInDesktopMode) {
@@ -447,8 +444,8 @@ class DefaultSessionControlController(
         TopSites.contileClick.record(
             TopSites.ContileClickExtra(
                 position = position + 1,
-                source = "newtab"
-            )
+                source = "newtab",
+            ),
         )
 
         topSite.id?.let { TopSites.contileTileId.set(it) }
@@ -461,7 +458,7 @@ class DefaultSessionControlController(
         TopSites.contileSettings.record(NoExtras())
         navController.nav(
             R.id.homeFragment,
-            HomeFragmentDirections.actionGlobalHomeSettingsFragment()
+            HomeFragmentDirections.actionGlobalHomeSettingsFragment(),
         )
     }
 
@@ -470,7 +467,7 @@ class DefaultSessionControlController(
         activity.openToBrowserAndLoad(
             searchTermOrURL = SupportUtils.getGenericSumoURLForTopic(SupportUtils.SumoTopic.SPONSOR_PRIVACY),
             newTab = true,
-            from = BrowserDirection.FromHome
+            from = BrowserDirection.FromHome,
         )
     }
 
@@ -512,12 +509,23 @@ class DefaultSessionControlController(
         HomeScreen.customizeHomeClicked.record(NoExtras())
     }
 
-    override fun handleShowOnboardingDialog() {
-        if (FeatureFlags.showHomeOnboarding) {
-            navController.nav(
-                R.id.homeFragment,
-                HomeFragmentDirections.actionGlobalHomeOnboardingDialog()
-            )
+    override fun handleShowWallpapersOnboardingDialog(state: WallpaperState): Boolean {
+        return if (activity.browsingModeManager.mode.isPrivate) {
+            false
+        } else {
+            state.availableWallpapers.filter { wallpaper ->
+                wallpaper.thumbnailFileState == Wallpaper.ImageFileState.Downloaded
+            }.size.let { downloadedCount ->
+                // We only display the dialog if enough thumbnails have been downloaded for it.
+                downloadedCount >= THUMBNAILS_SELECTION_COUNT
+            }.also { showOnboarding ->
+                if (showOnboarding) {
+                    navController.nav(
+                        R.id.homeFragment,
+                        HomeFragmentDirections.actionGlobalWallpaperOnboardingDialog(),
+                    )
+                }
+            }
         }
     }
 
@@ -525,7 +533,7 @@ class DefaultSessionControlController(
         activity.openToBrowserAndLoad(
             searchTermOrURL = SupportUtils.getMozillaPageUrl(SupportUtils.MozillaPage.PRIVATE_NOTICE),
             newTab = true,
-            from = BrowserDirection.FromHome
+            from = BrowserDirection.FromHome,
         )
     }
 
@@ -535,7 +543,7 @@ class DefaultSessionControlController(
 
     private fun showTabTrayCollectionCreation() {
         val directions = HomeFragmentDirections.actionGlobalTabsTrayFragment(
-            enterMultiselect = true
+            enterMultiselect = true,
         )
         navController.nav(R.id.homeFragment, directions)
     }
@@ -543,7 +551,7 @@ class DefaultSessionControlController(
     private fun showCollectionCreationFragment(
         step: SaveCollectionStep,
         selectedTabIds: Array<String>? = null,
-        selectedTabCollectionId: Long? = null
+        selectedTabCollectionId: Long? = null,
     ) {
         if (navController.currentDestination?.id == R.id.collectionCreationFragment) return
 
@@ -559,7 +567,7 @@ class DefaultSessionControlController(
             tabIds = tabIds,
             saveCollectionStep = step,
             selectedTabIds = selectedTabIds,
-            selectedTabCollectionId = selectedTabCollectionId ?: -1
+            selectedTabCollectionId = selectedTabCollectionId ?: -1,
         )
         navController.nav(R.id.homeFragment, directions)
     }
@@ -575,8 +583,9 @@ class DefaultSessionControlController(
 
     private fun showShareFragment(shareSubject: String, data: List<ShareData>) {
         val directions = HomeFragmentDirections.actionGlobalShareFragment(
+            sessionId = store.state.selectedTabId,
             shareSubject = shareSubject,
-            data = data.toTypedArray()
+            data = data.toTypedArray(),
         )
         navController.nav(R.id.homeFragment, directions)
     }
@@ -588,7 +597,7 @@ class DefaultSessionControlController(
             searchTermOrURL = clipboardText,
             newTab = true,
             from = BrowserDirection.FromHome,
-            engine = searchEngine
+            engine = searchEngine,
         )
 
         if (clipboardText.isUrl() || searchEngine == null) {
@@ -598,7 +607,7 @@ class DefaultSessionControlController(
             MetricsUtils.recordSearchMetrics(
                 searchEngine,
                 searchEngine == store.state.search.selectedOrDefaultSearchEngine,
-                searchAccessPoint
+                searchAccessPoint,
             )
         }
     }
@@ -606,7 +615,7 @@ class DefaultSessionControlController(
     override fun handlePaste(clipboardText: String) {
         val directions = HomeFragmentDirections.actionGlobalSearchDialog(
             sessionId = null,
-            pastedText = clipboardText
+            pastedText = clipboardText,
         )
         navController.nav(R.id.homeFragment, directions)
     }
@@ -619,13 +628,9 @@ class DefaultSessionControlController(
         messageController.onMessageDismissed(message)
     }
 
-    override fun handleMessageDisplayed(message: Message) {
-        messageController.onMessageDisplayed(message)
-    }
-
     override fun handlePrivateModeButtonClicked(
         newMode: BrowsingMode,
-        userHasBeenOnboarded: Boolean
+        userHasBeenOnboarded: Boolean,
     ) {
         if (newMode == BrowsingMode.Private) {
             activity.settings().incrementNumTimesPrivateModeOpened()
@@ -633,14 +638,14 @@ class DefaultSessionControlController(
 
         if (userHasBeenOnboarded) {
             appStore.dispatch(
-                AppAction.ModeChange(Mode.fromBrowsingMode(newMode))
+                AppAction.ModeChange(Mode.fromBrowsingMode(newMode)),
             )
 
             if (navController.currentDestination?.id == R.id.searchDialogFragment) {
                 navController.navigate(
                     BrowserFragmentDirections.actionGlobalSearchDialog(
-                        sessionId = null
-                    )
+                        sessionId = null,
+                    ),
                 )
             }
         }

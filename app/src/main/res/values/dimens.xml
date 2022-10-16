@@ -76,8 +76,10 @@
 
     <!-- Home Fragment -->
     <dimen name="home_fragment_top_toolbar_header_margin">60dp</dimen>
-    <dimen name="home_item_elevation">5dp</dimen>
     <dimen name="home_item_horizontal_margin">16dp</dimen>
+    <dimen name="home_item_vertical_margin">8dp</dimen>
+    <dimen name="wordmark_text_height">18dp</dimen>
+    <dimen name="wordmark_text_margin_top">10dp</dimen>
 
     <!-- Browser Fragment -->
     <!--The size of the gap between the tab preview and content layout.-->
@@ -134,9 +136,6 @@
     <dimen name="onboarding_dual_pane_radio_button_translation_x">-7dp</dimen>
     <dimen name="onboarding_dual_pane_radio_button_translation_y">-8dp</dimen>
 
-    <!--Onboarding home dialog-->
-    <dimen name="oboarding_home_dialog_margin_horizontal">24dp</dimen>
-
     <!-- Addon Details Fragment -->
     <dimen name="addon_details_rating_view_margin_start">6dp</dimen>
     <dimen name="addon_details_rating_view_margin_end">6dp</dimen>
@@ -168,14 +167,16 @@
     <dimen name="account_settings_device_name_min_height">48dp</dimen>
 
     <!-- Top sites  -->
+    <dimen name="top_sites_item_margin_top">4dp</dimen>
     <dimen name="top_sites_item_margin_bottom">12dp</dimen>
-    <dimen name="top_sites_text_margin_top">6dp</dimen>
+    <dimen name="top_sites_text_margin_top">2dp</dimen>
     <dimen name="top_sites_favicon_size">36dp</dimen>
     <dimen name="top_sites_favicon_elevation">0dp</dimen>
     <dimen name="top_sites_favicon_corner_size">4dp</dimen>
 
-    <dimen name="top_sites_card_size">60dp</dimen>
-    <dimen name="top_sites_card_padding">12dp</dimen>
+    <dimen name="top_sites_card_height">84dp</dimen>
+    <dimen name="top_sites_card_width">72dp</dimen>
+    <dimen name="top_sites_card_padding">8dp</dimen>
     <dimen name="top_sites_card_elevation">6dp</dimen>
     <dimen name="top_sites_card_radius">8dp</dimen>
 
@@ -186,4 +187,5 @@
     <!-- a11y -->
     <dimen name="accessibility_min_height">48dp</dimen>
 
+    <dimen name="tap_increase_16">16dp</dimen>
 </resources>

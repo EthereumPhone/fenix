@@ -7,7 +7,6 @@ package org.mozilla.fenix.library.history.viewholders
 import android.view.View
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
-import org.mozilla.fenix.FeatureFlags
 import org.mozilla.fenix.R
 import org.mozilla.fenix.databinding.HistoryListItemBinding
 import org.mozilla.fenix.ext.components
@@ -34,10 +33,6 @@ class HistoryListItemViewHolder(
             historyInteractor.onRecentlyClosedClicked()
         }
 
-        binding.syncedHistoryNavEmpty.syncedHistoryNav.setOnClickListener {
-            historyInteractor.onSyncedHistoryClicked()
-        }
-
         binding.historyLayout.overflowView.apply {
             setImageResource(R.drawable.ic_close)
             contentDescription = view.context.getString(R.string.history_delete_item)
@@ -50,6 +45,8 @@ class HistoryListItemViewHolder(
 
     /**
      * Displays the data of the given history record.
+     *
+     * @param item Data associated with the view.
      * @param timeGroup used to form headers for different time frames, like today, yesterday, etc.
      * @param showTopContent enables the Recent tab button.
      * @param mode switches between editing and regular modes.
@@ -64,7 +61,7 @@ class HistoryListItemViewHolder(
         showTopContent: Boolean,
         mode: HistoryFragmentState.Mode,
         isPendingDeletion: Boolean,
-        groupPendingDeletionCount: Int
+        groupPendingDeletionCount: Int,
     ) {
         binding.historyLayout.isVisible = !isPendingDeletion
 
@@ -116,17 +113,15 @@ class HistoryListItemViewHolder(
         } else {
             binding.headerTitle.visibility = View.GONE
         }
+        binding.bottomSpacer.isVisible = headerText != null
     }
 
-    @Suppress("NestedBlockDepth")
     private fun toggleTopContent(
         showTopContent: Boolean,
         isNormalMode: Boolean,
     ) {
         binding.recentlyClosedNavEmpty.recentlyClosedNav.isVisible = showTopContent
         binding.topSpacer.isVisible = showTopContent
-        binding.bottomSpacer.isVisible = showTopContent
-        binding.syncedHistoryNavEmpty.syncedHistoryNav.isVisible = showTopContent && FeatureFlags.showSyncedHistory
 
         if (showTopContent) {
             val numRecentTabs = itemView.context.components.core.store.state.closedTabs.size
@@ -136,11 +131,10 @@ class HistoryListItemViewHolder(
                         R.string.recently_closed_tab
                     } else {
                         R.string.recently_closed_tabs
-                    }
+                    },
                 ),
-                numRecentTabs
+                numRecentTabs,
             )
-
             binding.recentlyClosedNavEmpty.recentlyClosedNav.run {
                 if (isNormalMode) {
                     isEnabled = true
@@ -148,18 +142,6 @@ class HistoryListItemViewHolder(
                 } else {
                     isEnabled = false
                     alpha = DISABLED_BUTTON_ALPHA
-                }
-            }
-
-            if (FeatureFlags.showSyncedHistory) {
-                binding.syncedHistoryNavEmpty.syncedHistoryNav.run {
-                    if (isNormalMode) {
-                        isEnabled = true
-                        alpha = 1f
-                    } else {
-                        isEnabled = false
-                        alpha = DISABLED_BUTTON_ALPHA
-                    }
                 }
             }
         }

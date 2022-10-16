@@ -56,7 +56,7 @@ class AutofillSettingFragment : BiometricPromptPreferenceFragment() {
     private val creditCardPreferences: List<Int> = listOf(
         R.string.pref_key_credit_cards_save_and_autofill_cards,
         R.string.pref_key_credit_cards_sync_cards_across_devices,
-        R.string.pref_key_credit_cards_manage_cards
+        R.string.pref_key_credit_cards_manage_cards,
     )
 
     override fun unlockMessage() = getString(R.string.credit_cards_biometric_prompt_message)
@@ -87,11 +87,32 @@ class AutofillSettingFragment : BiometricPromptPreferenceFragment() {
             } else {
                 R.xml.credit_cards_preferences
             },
-            rootKey
+            rootKey,
         )
 
+        updateSaveAndAutofillCardsSwitch()
+
+        if (requireComponents.settings.addressFeature) {
+            updateSaveAndAutofillAddressesSwitch()
+        }
+    }
+
+    /**
+     * Updates save and autofill cards preference switch state depending on the saved user preference.
+     */
+    internal fun updateSaveAndAutofillCardsSwitch() {
         requirePreference<SwitchPreference>(R.string.pref_key_credit_cards_save_and_autofill_cards).apply {
             isChecked = context.settings().shouldAutofillCreditCardDetails
+            onPreferenceChangeListener = SharedPreferenceUpdater()
+        }
+    }
+
+    /**
+     * Updates save and autofill addresses preference switch state depending on the saved user preference.
+     */
+    internal fun updateSaveAndAutofillAddressesSwitch() {
+        requirePreference<SwitchPreference>(R.string.pref_key_addresses_save_and_autofill_addresses).apply {
+            isChecked = context.settings().shouldAutofillAddressDetails
             onPreferenceChangeListener = SharedPreferenceUpdater()
         }
     }
@@ -99,7 +120,7 @@ class AutofillSettingFragment : BiometricPromptPreferenceFragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View? {
         loadAutofillState()
         return super.onCreateView(inflater, container, savedInstanceState)
@@ -143,14 +164,14 @@ class AutofillSettingFragment : BiometricPromptPreferenceFragment() {
                 .getString(R.string.preferences_credit_cards_sync_cards),
             onSignInToSyncClicked = {
                 findNavController().navigate(
-                    NavGraphDirections.actionGlobalTurnOnSync()
+                    NavGraphDirections.actionGlobalTurnOnSync(),
                 )
             },
             onReconnectClicked = {
                 findNavController().navigate(
-                    AutofillSettingFragmentDirections.actionGlobalAccountProblemFragment()
+                    AutofillSettingFragmentDirections.actionGlobalAccountProblemFragment(),
                 )
-            }
+            },
         )
 
         togglePrefsEnabled(creditCardPreferences, true)
@@ -185,7 +206,7 @@ class AutofillSettingFragment : BiometricPromptPreferenceFragment() {
                 } else {
                     AutofillSettingFragmentDirections
                         .actionAutofillSettingFragmentToAddressEditorFragment()
-                }
+                },
             )
 
             super.onPreferenceTreeClick(it)
@@ -198,7 +219,7 @@ class AutofillSettingFragment : BiometricPromptPreferenceFragment() {
     @VisibleForTesting
     internal fun updateCardManagementPreference(
         hasCreditCards: Boolean,
-        navController: NavController
+        navController: NavController,
     ) {
         val manageSavedCardsPreference =
             requirePreference<Preference>(R.string.pref_key_credit_cards_manage_cards)
@@ -219,7 +240,7 @@ class AutofillSettingFragment : BiometricPromptPreferenceFragment() {
             } else {
                 navController.navigate(
                     AutofillSettingFragmentDirections
-                        .actionAutofillSettingFragmentToCreditCardEditorFragment()
+                        .actionAutofillSettingFragmentToCreditCardEditorFragment(),
                 )
             }
             super.onPreferenceTreeClick(it)
@@ -282,7 +303,7 @@ class AutofillSettingFragment : BiometricPromptPreferenceFragment() {
     override fun showPinVerification(manager: KeyguardManager) {
         val intent = manager.createConfirmDeviceCredentialIntent(
             getString(R.string.credit_cards_biometric_prompt_message_pin),
-            getString(R.string.credit_cards_biometric_prompt_message)
+            getString(R.string.credit_cards_biometric_prompt_message),
         )
         startActivityForResult(intent, PIN_REQUEST)
     }

@@ -16,6 +16,8 @@
     <!-- Placeholder text shown in the search bar before a user enters text -->
     <string name="search_hint">Eheka térã ehai kundaharape</string>
 
+    <!-- Placeholder text shown in the search bar when using application search engines -->
+    <string name="application_search_hint">Emoinge ñe’ẽ ehekaséva</string>
     <!-- No Open Tabs Message Description -->
     <string name="no_open_tabs_description">Umi tendayke ijurujáva ojehecháta ápe.</string>
 
@@ -39,11 +41,9 @@
 
     <!-- Home - Recently saved bookmarks -->
     <!-- Title for the home screen section with recently saved bookmarks. -->
-    <string name="recent_bookmarks_title">Techaukaha ramoguáva</string>
-    <!-- Content description for the recently saved bookmarks section on the home screen. -->
-    <string moz:removedIn="100" name="recently_saved_bookmarks_content_description" tools:ignore="UnusedResources">Techaukaha oñeñongaturamóva</string>
-    <!-- Title for the button which navigates the user to show all of their saved bookmarks. -->
-    <string moz:removedIn="101" name="recently_saved_show_all" tools:ignore="UnusedResources">Techaukapaite</string>
+    <string moz:RemovedIn="106" name="recent_bookmarks_title" tools:ignore="UnusedResources">Techaukaha ramoguáva</string>
+    <!-- Title for the home screen section with recently saved bookmarks. -->
+    <string name="recently_saved_title">Oñeñongaturamóva</string>
     <!-- Content description for the button which navigates the user to show all of their saved bookmarks. -->
     <string name="recently_saved_show_all_content_description_2">Ehechaukapaite techaukaha ñongatupyre</string>
 
@@ -77,6 +77,12 @@
     <string name="open_in_app_cfr_positive_button_text">Eho ñembohekópe</string>
     <!-- Text for the negative action button -->
     <string name="open_in_app_cfr_negative_button_text">Mboyke</string>
+
+    <!-- Content description for close button used in "contextual feature recommendation" (CFR) popups -->
+    <string name="cfr_dismiss_button_default_content_description">Mboyke</string>
+
+    <!-- Text displayed that links to website containing documentation about the "Total cookie protection" feature. -->
+    <string name="tcp_cfr_learn_more">Maranduve kookie ñemo’ã guasu rehegua</string>
 
     <!-- Text for the info dialog when camera permissions have been denied but user tries to access a camera feature. -->
     <string name="camera_permissions_needed_message">Eikotevẽ eike ta’ãngamýime. Eho Android ñembohekópe, eukutu ñemoneĩ ha moneĩ.</string>
@@ -125,16 +131,18 @@
     <string name="recent_tabs_show_all_content_description_2">Ehechauka votõ opaite tendayke ramoguápe</string>
     <!-- Title for showing a group item in the 'Jump back in' section of the new tab
         The first parameter is the search term that the user used. (for example: your search for "cat")-->
-    <string name="recent_tabs_search_term">Eheka \&quot;%1$s\&quot; rupive</string>
+    <string moz:RemovedIn="105" name="recent_tabs_search_term" tools:ignore="UnusedResources">Eheka \&quot;%1$s\&quot; rupive</string>
 
     <!-- Text for the number of tabs in a group in the 'Jump back in' section of the new tab
         %d is a placeholder for the number of sites in the group. This number will always be more than one. -->
-    <string name="recent_tabs_search_term_count_2">%d tendakuéra</string>
+    <string moz:RemovedIn="105" name="recent_tabs_search_term_count_2" tools:ignore="UnusedResources">%d tendakuéra</string>
 
     <!-- Text for button in synced tab card that opens synced tabs tray -->
     <string name="recent_tabs_see_all_synced_tabs_button_text">Ehechapaite tendayke mbojuehepyre</string>
     <!-- Accessibility description for device icon used for recent synced tab -->
     <string name="recent_tabs_synced_device_icon_content_description">Mba’e’oka mbojuehepyre</string>
+    <!-- Text for the dropdown menu to remove a recent synced tab from the homescreen -->
+    <string name="recent_synced_tab_menu_item_remove">Mboguete</string>
     <!-- Text for the menu button to remove a grouped highlight from the user's browsing history
          in the Recently visited section -->
     <string name="recent_tab_menu_item_remove">Mboguete</string>
@@ -240,8 +248,6 @@
     <string name="search_suggestions_onboarding_title">¿Emoneĩ jehekarã tembiapo ñemiguápe?</string>
     <!-- Search suggestion onboarding hint description text, first parameter is the name of the app defined in app_name (for example: Fenix)-->
     <string name="search_suggestions_onboarding_text">%s omohekuãta ehaíva guive kundaharape rendápe nde hekaha ijypykuéva ndive.</string>
-    <!-- Search suggestion onboarding hint Learn more link text -->
-    <string moz:RemovedIn="100" name="search_suggestions_onboarding_learn_more_link" tools:ignore="UnusedResources">Kuaave</string>
 
     <!-- Search engine suggestion title text. The first parameter is the name of teh suggested engine-->
     <string name="search_engine_suggestions_title">Eheka %s</string>
@@ -254,25 +260,40 @@
 
     <!-- Home onboarding -->
     <!-- Onboarding home screen dialog title text. The first parameter is the name of the application.-->
-    <string name="onboarding_home_screen_title_3">%1$s mba’epyahu</string>
+    <string moz:RemovedIn="106" name="onboarding_home_screen_title_3" tools:ignore="UnusedResources">%1$s mba’epyahu</string>
     <!-- Onboarding home screen dialog description text. -->
-    <string name="onboarding_home_screen_description_2">Ko’ág̃a ndahasyive eku’ejeývo eheja haguégui.</string>
+    <string moz:RemovedIn="106" name="onboarding_home_screen_description_2" tools:ignore="UnusedResources">Ko’ág̃a ndahasyive eku’ejeývo eheja haguégui.</string>
     <!-- Onboarding home screen dialog title text for the home section. The first parameter is the name of the application.-->
-    <string name="onboarding_home_screen_section_home_title_3">%1$s kuatiarogue ñepyrũgua mboavapyre</string>
+    <string moz:RemovedIn="106" name="onboarding_home_screen_section_home_title_3" tools:ignore="UnusedResources">%1$s kuatiarogue ñepyrũgua mboavapyre</string>
     <!-- Onboarding home screen dialog description text for the home section. -->
-    <string name="onboarding_home_screen_section_home_description_2">Eike ne rendayke ijurujáva, techaukaha ha tembiasakue rembiasakue.</string>
+    <string moz:RemovedIn="106" name="onboarding_home_screen_section_home_description_2" tools:ignore="UnusedResources">Eike ne rendayke ijurujáva, techaukaha ha tembiasakue rembiasakue.</string>
     <!-- Onboarding home screen dialog description text for the tab tray section. -->
-    <string name="onboarding_home_screen_section_cleaner_tab_tray_title_2">Tendayke hesakã ha hendaporãva</string>
+    <string moz:RemovedIn="106" name="onboarding_home_screen_section_cleaner_tab_tray_title_2" tools:ignore="UnusedResources">Tendayke hesakã ha hendaporãva</string>
     <!-- Onboarding home screen dialog description text for the tab tray section. -->
-    <string name="onboarding_home_screen_section_cleaner_tab_tray_description_2">Emboguete tendayke oĩvaipáva oikoporãvéva ndive ha oñembotýva ha’eño.</string>
+    <string moz:RemovedIn="106" name="onboarding_home_screen_section_cleaner_tab_tray_description_2" tools:ignore="UnusedResources">Emboguete tendayke oĩvaipáva oikoporãvéva ndive ha oñembotýva ha’eño.</string>
     <!-- Onboarding home screen dialog description text for the history section. -->
-    <string name="onboarding_home_screen_section_useful_history_title_2">Ojeheka ramóva</string>
+    <string moz:RemovedIn="106" name="onboarding_home_screen_section_useful_history_title_2" tools:ignore="UnusedResources">Ojeheka ramóva</string>
 
     <!-- Onboarding home screen dialog description text for the history section. -->
-    <string name="onboarding_home_screen_section_useful_history_description_2">Ehecha eheka ramovéva kuatiarogue ñepyrũ ha tendayke guive.</string>
+    <string moz:RemovedIn="106" name="onboarding_home_screen_section_useful_history_description_2" tools:ignore="UnusedResources">Ehecha eheka ramovéva kuatiarogue ñepyrũ ha tendayke guive.</string>
 
     <!-- Onboarding home screen popup dialog, shown on top of the Jump back in section. Firefox is intentionally hardcoded. -->
-    <string name="onboarding_home_screen_jump_back_contextual_hint" tools:ignore="UnusedResources">Nde kuatiarogue ñepyrũgua mboavapyre Firefox pegua nombohasyive eñepyrũjeývo eheja haguégui. Ejuhu ne rendayke, techaukaha ha ehekaramovéva.</string>
+    <string moz:RemovedIn="106" name="onboarding_home_screen_jump_back_contextual_hint" tools:ignore="UnusedResources">Nde kuatiarogue ñepyrũgua mboavapyre Firefox pegua nombohasyive eñepyrũjeývo eheja haguégui. Ejuhu ne rendayke, techaukaha ha ehekaramovéva.</string>
+
+    <!-- Home onboarding dialog welcome screen title text. -->
+    <string moz:RemovedIn="106" name="onboarding_home_welcome_title" tools:ignore="UnusedResources">Eg̃uahẽporãite ñanduti ijeheguívape</string>
+    <!-- Home onboarding dialog welcome screen title text. -->
+    <string name="onboarding_home_welcome_title_2">Eg̃uahẽporãite ñanduti mba’eguáva</string>
+    <!-- Home onboarding dialog sign into sync screen title text. -->
+    <string moz:RemovedIn="106" name="onboarding_home_sync_title_2" tools:ignore="UnusedResources">Eva pumbyrýgui mohendahápe ha ambueháicha</string>
+    <!-- Home onboarding dialog sign into sync screen title text. -->
+    <string name="onboarding_home_sync_title_3">Mba’erechaha ñemoambue ndahasyiete</string>
+    <!-- Text for the button to continue the onboarding on the home onboarding dialog. -->
+    <string name="onboarding_home_get_started_button">Eñepyrũ</string>
+    <!-- Text for the button to navigate to the sync sign in screen on the home onboarding dialog. -->
+    <string name="onboarding_home_sign_in_button">Eñemboheraguapy</string>
+    <!-- Text for the button to skip the onboarding on the home onboarding dialog. -->
+    <string name="onboarding_home_skip_button">Jepo</string>
 
     <!-- Search Widget -->
     <!-- Content description for searching with a widget. The first parameter is the name of the application.-->
@@ -363,7 +384,9 @@
     <!-- Preference for settings related to visual options -->
     <string name="preferences_customize">Ñemomba’ete</string>
     <!-- Preference description for banner about signing in -->
-    <string name="preferences_sign_in_description">Embojuehe techaukaha, tembiasakue ha mba’ete Firefox pegua ndive</string>
+    <string moz:RemovedIn="104" name="preferences_sign_in_description" tools:ignore="UnusedResources">Embojuehe techaukaha, tembiasakue ha mba’ete Firefox pegua ndive</string>
+    <!-- Preference description for banner about signing in -->
+    <string name="preferences_sign_in_description_2">Eñepyrũ tembiapo embojuehe hag̃ua tendayke, techaukaha, ñe’ẽñemi ha hetave.</string>
     <!-- Preference shown instead of account display name while account profile information isn't available yet. -->
     <string name="preferences_account_default_name">Firefox Account</string>
     <!-- Preference text for account title when there was an error syncing FxA -->
@@ -432,6 +455,8 @@
     <!-- Title for the customize home screen section with Pocket. -->
     <string name="customize_toggle_pocket">Pocket</string>
 
+    <!-- Title for the customize home screen section with sponsored Pocket stories. -->
+    <string name="customize_toggle_pocket_sponsored">Tembiasakue jehepyme’ẽguáva</string>
     <!-- Title for the opening wallpaper settings screen -->
     <string name="customize_wallpapers">Mba’erechaha rugua</string>
     <!-- Title for the customize home screen section with sponsored shortcuts. -->
@@ -445,12 +470,30 @@
     <!-- Snackbar label for action to view selected wallpaper -->
     <string name="wallpaper_updated_snackbar_action">Hecha</string>
 
+    <!-- Snackbar message for when wallpaper couldn't be downloaded -->
+    <string name="wallpaper_download_error_snackbar_message">Noñemboguejykuaái mba’erechaha rugua</string>
+    <!-- Snackbar label for action to retry downloading the wallpaper -->
+    <string name="wallpaper_download_error_snackbar_action">Eha’ãjey</string>
+    <!-- Snackbar message for when wallpaper couldn't be selected because of the disk error -->
+    <string name="wallpaper_select_error_snackbar_message">Noñemoambuekuaái mba’erechaha rugua</string>
+    <!-- Text displayed that links to website containing documentation about the "Limited Edition" wallpapers. -->
+    <string name="wallpaper_learn_more">Kuaave</string>
     <!-- Label for switch which toggles the "tap-to-switch" behavior on home screen logo -->
-    <string name="wallpaper_tap_to_change_switch_label_1">Emoambue mba’erechaha rugua opokóvo Firefox kuatiarogue ñepyrũ ra’ãnga’i</string>
+    <string moz:removedIn="105" name="wallpaper_tap_to_change_switch_label_1" tools:ignore="UnusedResources">Emoambue mba’erechaha rugua opokóvo Firefox kuatiarogue ñepyrũ ra’ãnga’i</string>
 
     <!-- This is the accessibility content description for the wallpapers functionality. Users are
     able to tap on the app logo in the home screen and can switch to different wallpapers by tapping. -->
-    <string name="wallpaper_logo_content_description">Firefox ra’ãnga’i - emoambue mba’erechaha rugua, votõ</string>
+    <string moz:removedIn="105" name="wallpaper_logo_content_description" tools:ignore="UnusedResources">Firefox ra’ãnga’i - emoambue mba’erechaha rugua, votõ</string>
+
+    <!-- Text for classic wallpapers title. The first parameter is the Firefox name. -->
+    <string name="wallpaper_classic_title">Jepokuaa %s</string>
+    <!-- Text for limited edition wallpapers title. -->
+    <string name="wallpaper_limited_edition_title">Ñemoheñói sa’íva</string>
+    <!-- Wallpaper onboarding dialog header text. -->
+    <string name="wallpapers_onboarding_dialog_title_text">Eipurukuaa sa’y sa’imi</string>
+
+    <!-- Wallpaper onboarding dialog body text. -->
+    <string name="wallpapers_onboarding_dialog_body_text">Eiporavo mba’erechaha rugua nde ehecharamóva.</string>
 
     <!-- Add-on Installation from AMO-->
     <!-- Error displayed when user attempts to install an add-on from AMO (addons.mozilla.org) that is not supported -->
@@ -535,7 +578,9 @@
 
     <!-- Turn On Sync Preferences -->
     <!-- Header of the Turn on Sync preference view -->
-    <string name="preferences_sync">Emyandy Sync</string>
+    <string moz:RemovedIn="104" name="preferences_sync" tools:ignore="UnusedResources">Emyandy Sync</string>
+    <!-- Header of the Sync and save your data preference view -->
+    <string name="preferences_sync_2">Embojuehe ha eñongatu mba’ekuaarã</string>
     <!-- Preference for reconnecting to FxA sync -->
     <string name="preferences_sync_sign_in_to_reconnect">Eñepyrũ tembiapo eikejey hag̃ua</string>
     <!-- Preference for removing FxA account -->
@@ -626,9 +671,9 @@
     <!-- Option for a grid tab view -->
     <string name="tab_view_grid">Kora’ieta</string>
     <!-- Option for search term tab groups -->
-    <string name="tab_view_search_term_tab_groups">Eheka atýhápe</string>
+    <string moz:RemovedIn="105" name="tab_view_search_term_tab_groups" tools:ignore="UnusedResources">Eheka atýhápe</string>
     <!-- Summary text for search term tab groups -->
-    <string name="tab_view_search_term_tab_groups_summary">Ambyaty tenda ojueheguáva</string>
+    <string moz:RemovedIn="105" name="tab_view_search_term_tab_groups_summary" tools:ignore="UnusedResources">Ambyaty tenda ojueheguáva</string>
     <!-- Title of preference that allows a user to auto close tabs after a specified amount of time -->
     <string name="preferences_close_tabs">Emboty tendayke</string>
     <!-- Option for auto closing tabs that will never auto close tabs, always allows user to manually close tabs -->
@@ -739,8 +784,6 @@
     <string name="open_tabs_menu">Embojuruja poravorã rendayke</string>
     <!-- Open tabs menu item to save tabs to collection -->
     <string name="tabs_menu_save_to_collection1">Eñongatu tendayke atyhápe</string>
-    <!-- Content description (not visible, for screen readers etc.): Opens the tab menu when pressed -->
-    <string name="tab_menu">Poravorã rendayke</string>
     <!-- Text for the menu button to delete a collection -->
     <string name="collection_delete">Emboguete atygua</string>
     <!-- Text for the menu button to rename a collection -->
@@ -760,7 +803,7 @@
     <string name="pwa_site_controls_title_private">%1$s (Ayvu Ñemigua)</string>
 
     <!-- Title text for the normal tabs header in the tabs tray which are not part of any tab grouping. -->
-    <string name="tab_tray_header_title_1">Ambue tendayke</string>
+    <string moz:removedIn="104" name="tab_tray_header_title_1" tools:ignore="UnusedResources">Ambue tendayke</string>
 
     <!-- History -->
     <!-- Text for the button to search all history -->
@@ -792,10 +835,18 @@
     <string name="history_empty_message">Ndaipóri tembiasakue</string>
 
     <!-- Text for the button inside History screen that opens Synced History screen. History that is coming from other devices -->
-    <string name="history_synced_from_other_devices">Oñembojuehepyre ambue mba’e’okáre</string>
+    <string moz:removedIn="105" name="history_synced_from_other_devices" tools:ignore="UnusedResources">Oñembojuehepyre ambue mba’e’okáre</string>
 
     <!-- The page title for browsing history coming from other devices. -->
-    <string name="history_from_other_devices">Ambue mba’e’oka guive</string>
+    <string moz:removedIn="105" name="history_from_other_devices" tools:ignore="UnusedResources">Ambue mba’e’oka guive</string>
+
+    <!-- The synced history sign in dialog message -->
+    <string moz:removedIn="105" name="history_sign_in_message" tools:ignore="UnusedResources">Eike ehecha hag̃ua tembiasakue mbojojapyre ambue nemba’e’okagua.</string>
+    <!-- The synced history sign in dialog button text -->
+    <string moz:removedIn="105" name="history_sign_in_button" tools:ignore="UnusedResources">Eñemboheraguapy</string>
+
+    <!-- The synced history sign in dialog create a new account link -->
+    <string moz:removedIn="105" name="history_sign_in_create_account" tools:ignore="UnusedResources"><![CDATA[<u>Térã emoheñói Firefox mba’ete embojuehe hag̃ua</u>]]></string>
 
     <!-- Downloads -->
     <!-- Text for the snackbar to confirm that multiple downloads items have been removed -->
@@ -1090,8 +1141,6 @@
     <string name="snackbar_tabs_closed">Tendayke mbotypyre</string>
     <!-- Text shown in snackbar when user bookmarks a list of tabs -->
     <string name="snackbar_message_bookmarks_saved">¡Techaukaha ñongatupyre!</string>
-    <!-- Text shown in snackbar when user adds a site to top sites -->
-    <string moz:RemovedIn="101" name="snackbar_added_to_top_sites" tools:ignore="UnusedResources">¡Ojuajúma tenda iporãvévare!</string>
     <!-- Text shown in snackbar when user adds a site to shortcuts -->
     <string name="snackbar_added_to_shortcuts">¡Ojuajúva mbopya’eháre!</string>
     <!-- Text shown in snackbar when user closes a private tab -->
@@ -1171,7 +1220,18 @@
     <string name="delete_browsing_data_on_quit_action">Ñesẽ</string>
 
     <!-- Dialog message to the user asking to delete browsing data. -->
-    <string name="delete_browsing_data_prompt_message">Oñemboguepáta opaite ne kundahára mba’ekuaarã.</string>
+    <string moz:removedIn="104" name="delete_browsing_data_prompt_message" tools:ignore="UnusedResources">Oñemboguepáta opaite ne kundahára mba’ekuaarã.</string>
+    <!-- Title text of a delete browsing data dialog. -->
+    <string name="delete_history_prompt_title">Pa’ũ embogue hag̃ua</string>
+    <!-- Body text of a delete browsing data dialog. -->
+    <string name="delete_history_prompt_body">Embogue tembiasakue (oĩhápe tembiasakue mbojuehepyre ambue mba’e’okagua), kookie ha ambue kundahára mba’ekuaarã.</string>
+    <!-- Radio button in the delete browsing data dialog to delete history items for the last hour. -->
+    <string name="delete_history_prompt_button_last_hour">Aravo pahápe</string>
+    <!-- Radio button in the delete browsing data dialog to delete history items for today and yesterday. -->
+    <string name="delete_history_prompt_button_today_and_yesterday">Ko árape ha kuehe</string>
+    <!-- Radio button in the delete browsing data dialog to delete all history. -->
+    <string name="delete_history_prompt_button_everything">Opavave</string>
+
     <!-- Dialog message to the user asking to delete browsing data. Parameter will be replaced by app name. -->
     <string name="delete_browsing_data_prompt_message_3">%s omboguepáta umi kundahára mba’ekuaarã poravopyre.</string>
     <!-- Text for the cancel button for the data deletion dialog -->
@@ -1185,8 +1245,8 @@
     <!-- Text for the snackbar to show the user that the deletion of browsing data is in progress -->
     <string name="deleting_browsing_data_in_progress">Oguepahína kundahára mba’ekuaarã…</string>
 
-    <!-- Dialog message to the user asking to delete all history items inside the opened group. -->
-    <string name="delete_history_group_prompt_message">Kóva omboguepáta opaite mba’epuru.</string>
+    <!-- Dialog message to the user asking to delete all history items inside the opened group. Parameter will be replaced by a history group name. -->
+    <string name="delete_all_history_group_prompt_message">Emboguepaite tenda “%s”-pe</string>
     <!-- Text for the cancel button for the history group deletion dialog -->
     <string name="delete_history_group_prompt_cancel">Heja</string>
     <!-- Text for the allow button for the history group dialog -->
@@ -1195,50 +1255,28 @@
     <!-- Text for the snackbar confirmation that the history group was deleted -->
     <string name="delete_history_group_snackbar">Aty mboguepyre</string>
 
-    <!-- Tips -->
-    <!-- text for firefox preview moving tip header "Firefox Preview" and "Firefox Nightly" are intentionally hardcoded -->
-    <string moz:RemovedIn="100" name="tip_firefox_preview_moved_header" tools:ignore="UnusedResources">Firefox Preview ko’ág̃a ha’e Firefox Nightly</string>
-    <!-- text for firefox preview moving tip description -->
-    <string moz:RemovedIn="100" name="tip_firefox_preview_moved_description" tools:ignore="UnusedResources">Firefox Nightly hekopyahu opaite pyharekue ha oreko tembiapoite pyahu ñeha’ãmby.
-        Upéicharõ jepe, ikatu sa’ive hekopyta. Emboguejy ore kundaha beta emba’apo porãve hag̃ua.</string>
-
-    <!-- text for firefox preview moving tip button. "Firefox for Android Beta" is intentionally hardcoded -->
-    <string moz:RemovedIn="100" name="tip_firefox_preview_moved_button_2" tools:ignore="UnusedResources">Eguereko Firefox Android Beta peg̃uarã</string>
-
-    <!-- text for firefox preview moving tip header. "Firefox Nightly" is intentionally hardcoded -->
-    <string moz:RemovedIn="100" name="tip_firefox_preview_moved_header_preview_installed" tools:ignore="UnusedResources">Firefox Nightly ovákuri</string>
-    <!-- text for firefox preview moving tip description -->
-    <string moz:RemovedIn="100" name="tip_firefox_preview_moved_description_preview_installed" tools:ignore="UnusedResources">Ko tembipuru’i ndahekopyahuvéima tekorosãrã. Ndoipuruvéima ko tembipuru’i ha ováma Nightly pyahúpe.
-        \n\nEmbohasa hag̃ua techaukaha, emoñepyrũ tembiapo ha tembiasakue ambue tembipuru’ípe, emoheñói Firefox mba’ete pyahúpe.</string>
-    <!-- text for firefox preview moving tip button  -->
-    <string moz:RemovedIn="100" name="tip_firefox_preview_moved_button_preview_installed" tools:ignore="UnusedResources">Eva Nightly pyahúpe</string>
-
-    <!-- text for firefox preview moving tip header. "Firefox Nightly" is intentionally hardcoded -->
-    <string moz:RemovedIn="100" name="tip_firefox_preview_moved_header_preview_not_installed" tools:ignore="UnusedResources">Firefox Nightly ovákuri</string>
-    <!-- text for firefox preview moving tip description -->
-    <string moz:RemovedIn="100" name="tip_firefox_preview_moved_description_preview_not_installed" tools:ignore="UnusedResources">Ko tembipuru’i ndahekopyahuvéima tekorosãrã. Emboguejy Nightly pyahu ha anive eipuru ko tembipuru’i.
-        \n\nEmbohasa hag̃ua techaukaha, emoñepyrũ tembiapo ha tembiasakue ambue tembipuru’ípe, emoheñói Firefox mba’ete pyahu.</string>
-    <!-- text for firefox preview moving tip button  -->
-    <string moz:RemovedIn="100" name="tip_firefox_preview_moved_button_preview_not_installed" tools:ignore="UnusedResources">Ereko Nightly pyahu</string>
-
     <!-- Onboarding -->
     <!-- Text for onboarding welcome message
     The first parameter is the name of the app (e.g. Firefox Preview) -->
-    <string name="onboarding_header">¡Eg̃uahẽporãite %s-pe!</string>
+    <string moz:RemovedIn="106" name="onboarding_header" tools:ignore="UnusedResources">¡Eg̃uahẽporãite %s-pe!</string>
     <!-- text for the Firefox account onboarding sign in card header. The word "Firefox" should not be translated -->
-    <string name="onboarding_account_sign_in_header_1">Embojuehe Firefox mba’e’oka pa’ũme</string>
-    <!-- text for the Firefox account onboarding sign in card header. The first parameter is the name of the application.-->
-    <string moz:RemovedIn="100" name="onboarding_account_sign_in_header_2" tools:ignore="UnusedResources">Embojuehe %1$s mba’e’oka ndive</string>
+    <string moz:removedIn="106" name="onboarding_account_sign_in_header_1" tools:ignore="UnusedResources">Embojuehe Firefox mba’e’oka pa’ũme</string>
     <!-- Text for the button to learn more about signing in to your Firefox account. The first parameter is the name of the application.-->
-    <string name="onboarding_manual_sign_in_description_2">Egueru techaukaha, tembiasakue ha ñe’ẽñemi %1$s-pe ko mba’e’okápe.</string>
+    <string moz:removedIn="106" name="onboarding_manual_sign_in_description_2" tools:ignore="UnusedResources">Egueru techaukaha, tembiasakue ha ñe’ẽñemi %1$s-pe ko mba’e’okápe.</string>
     <!-- text for the button to manually sign into Firefox account. -->
-    <string name="onboarding_firefox_account_sign_in_1">Eñemboheraguapy</string>
+    <string moz:removedIn="106" name="onboarding_firefox_account_sign_in_1" tools:ignore="UnusedResources">Eñemboheraguapy</string>
+    <!-- Text for the button to manually sign into Firefox account. -->
+    <string name="onboarding_firefox_account_sign_in">Eñepyrũ tembiapo</string>
     <!-- text to display in the snackbar once account is signed-in -->
     <string name="onboarding_firefox_account_sync_is_on">Sync oñemyandýma</string>
     <!-- text for the tracking protection onboarding card header -->
-    <string name="onboarding_tracking_protection_header_3">Tekoñemi hendymeme</string>
+    <string moz:removedIn="106" name="onboarding_tracking_protection_header_3" tools:ignore="UnusedResources">Tekoñemi hendymeme</string>
+    <!-- Text for the tracking protection onboarding card header -->
+    <string name="onboarding_tracking_protection_header">Omo’ã ñemigua ijeheguiete</string>
     <!-- text for the tracking protection card description. The first parameter is the name of the application.-->
-    <string name="onboarding_tracking_protection_description_4">%1$s ojoko ijehegui umi atyguasúpe ani ohapykueho ñanduti rupive kañyhápe.</string>
+    <string moz:removedIn="106" name="onboarding_tracking_protection_description_4" tools:ignore="UnusedResources">%1$s ojoko ijehegui umi atyguasúpe ani ohapykueho ñanduti rupive kañyhápe.</string>
+    <!-- Text for the tracking protection card description. -->
+    <string name="onboarding_tracking_protection_description">Ñemo’ãmbaite kookie rovake omboyke tapykuehohápe oipurúvo kookie nde rapykueho hag̃ua ñandutípe.</string>
     <!-- text for tracking protection radio button option for standard level of blocking -->
     <string name="onboarding_tracking_protection_standard_button_2">Ypyguaite (ijypygua)</string>
     <!-- text for standard blocking option button description -->
@@ -1250,13 +1288,15 @@
     <!-- text for the toolbar position card header  -->
     <string name="onboarding_toolbar_placement_header_1">Eiporavo tembipuru renda oĩha</string>
     <!-- text for the toolbar position card description -->
-    <string name="onboarding_toolbar_placement_description_1">Emoĩ tembipuru renda nde ykére. Eguereko yvy gotyo, térã emongu’e yvate gotyo.</string>
+    <string moz:removedIn="106" name="onboarding_toolbar_placement_description_1" tools:ignore="UnusedResources">Emoĩ tembipuru renda nde ykére. Eguereko yvy gotyo, térã emongu’e yvate gotyo.</string>
     <!-- text for the privacy notice onboarding card header -->
-    <string name="onboarding_privacy_notice_header">Ne ñemigua</string>
+    <string moz:removedIn="106" name="onboarding_privacy_notice_header" tools:ignore="UnusedResources">Ne ñemigua</string>
 
+    <!-- Text for the privacy notice onboarding card header -->
+    <string name="onboarding_privacy_notice_header_1">Ehechameme ne mba’ekuaarã</string>
     <!-- text for the privacy notice onboarding card description
     The first parameter is the name of the app (e.g. Firefox Preview) Substitute %s for long browser name. -->
-    <string name="onboarding_privacy_notice_description2">Rojapo %s eñangareko hag̃ua emoherakuãva ñandutípe rehe ha emoherakuãva orendive avei.</string>
+    <string moz:removedIn="106" name="onboarding_privacy_notice_description2" tools:ignore="UnusedResources">Rojapo %s eñangareko hag̃ua emoherakuãva ñandutípe rehe ha emoherakuãva orendive avei.</string>
     <!-- Text for the button to read the privacy notice -->
     <string name="onboarding_privacy_notice_read_button">Emoñe’ẽ ore marandu’i ñemigua</string>
 
@@ -1348,6 +1388,8 @@
     <string name="preference_enhanced_tracking_protection_custom_cookies_3">Umi kookie mbohapyháva (ikatu ñanduti renda ombyai)</string>
     <!-- Option for enhanced tracking protection for the custom protection settings for cookies-->
     <string name="preference_enhanced_tracking_protection_custom_cookies_4">Opaite kookie (ikatu ñanduti renda ombyai)</string>
+    <!-- Option for enhanced tracking protection for the custom protection settings for cookies-->
+    <string name="preference_enhanced_tracking_protection_custom_cookies_5">Eipe’a kookie tenda ojuasávagui</string>
     <!-- Preference for enhanced tracking protection for the custom protection settings for tracking content -->
     <string name="preference_enhanced_tracking_protection_custom_tracking_content">Tetepy rapykueho</string>
     <!-- Option for enhanced tracking protection for the custom protection settings for tracking content-->
@@ -1371,6 +1413,8 @@
     <string name="etp_social_media_trackers_description">Emomichĩ ava ñandutietápe nde rapykuehokuaa hag̃ua eikundahakuévo.</string>
     <!-- Category of trackers (cross-site tracking cookies) that can be blocked by Enhanced Tracking Protection -->
     <string name="etp_cookies_title">Kookie rapykuehoha tendakuérape</string>
+    <!-- Category of trackers (cross-site tracking cookies) that can be blocked by Enhanced Tracking Protection -->
+    <string name="etp_cookies_title_2">Kookie tenda ojuasáva</string>
     <!-- Description of cross-site tracking cookies that can be blocked by Enhanced Tracking Protection -->
     <string name="etp_cookies_description">Ejoko kookie oipurúva ñanduti marandugua ha mba’apohaguasu mba’ekuaarã resa’ỹijoha ombyatýva kundahára mba’ekuaarã oikévo tendápe.</string>
     <!-- Category of trackers (cryptominers) that can be blocked by Enhanced Tracking Protection -->
@@ -1578,6 +1622,12 @@
     <string name="preferences_addresses_add_address">Embojuaju kundaharape</string>
     <!-- Preference option for managing saved addresses -->
     <string name="preferences_addresses_manage_addresses">Kundaharape ñangareko</string>
+    <!-- Preference for saving and autofilling addresses -->
+    <string name="preferences_addresses_save_and_autofill_addresses">Eñongatu ha emyanyhẽ kundaharape</string>
+
+    <!-- Preference summary for saving and autofilling address data -->
+    <string name="preferences_addresses_save_and_autofill_addresses_summary">Emoĩ marandu ipapapy, ñanduti veve ha kundaharape ñemondorãva</string>
+
     <!-- Title of the "Add card" screen -->
     <string name="credit_cards_add_card">Embojuaju kuatia’atã</string>
     <!-- Title of the "Edit card" screen -->
@@ -1633,10 +1683,10 @@
 
     <!-- Title of the "Add address" screen -->
     <string name="addresses_add_address">Embojuaju kundaharape</string>
+    <!-- Title of the "Edit address" screen -->
+    <string name="addresses_edit_address">Embosako’i kundaharape</string>
     <!-- Title of the "Manage addresses" screen -->
     <string name="addresses_manage_addresses">Kundaharape ñangareko</string>
-    <!-- The header for the full name of an address -->
-    <string moz:removedIn="102" name="addresses_full_name" tools:ignore="UnusedResources">Téra ha terajuapy</string>
     <!-- The header for the first name of an address -->
     <string name="addresses_first_name">Téra Peteĩha</string>
     <!-- The header for the middle name of an address -->
@@ -1647,10 +1697,14 @@
     <string name="addresses_street_address">Kundaharape</string>
     <!-- The header for the city of an address -->
     <string name="addresses_city">Táva</string>
-    <!-- The header for the state of an address -->
+    <!-- The header for the subregion of an address when "state" should be used -->
     <string name="addresses_state">Tetãvore</string>
+    <!-- The header for the subregion of an address when "province" should be used -->
+    <string name="addresses_province">Tetãpehẽ</string>
     <!-- The header for the zip code of an address -->
     <string name="addresses_zip">Tendaréra papapy</string>
+    <!-- The header for the country or region of an address -->
+    <string name="addresses_country">Tetã térã tendaguasu</string>
     <!-- The header for the phone number of an address -->
     <string name="addresses_phone">Pumbyry</string>
     <!-- The header for the email of an address -->
@@ -1661,6 +1715,17 @@
     <string name="addresses_cancel_button">Heja</string>
     <!-- The text for the "Delete address" button for deleting an address -->
     <string name="addressess_delete_address_button">Embogue kundaharape</string>
+
+    <!-- The title for the "Delete address" confirmation dialog -->
+    <string name="addressess_confirm_dialog_message">¿Añetehápepa remboguese ko kundaharape?</string>
+    <!-- The text for the positive button on "Delete address" dialog -->
+    <string name="addressess_confirm_dialog_ok_button">Mboguete</string>
+    <!-- The text for the negative button on "Delete address" dialog -->
+    <string name="addressess_confirm_dialog_cancel_button">Heja</string>
+    <!-- The text for the "Save address" menu item for saving an address -->
+    <string name="address_menu_save_address">Eñongatu kundaharape</string>
+    <!-- The text for the "Delete address" menu item for deleting an address -->
+    <string name="address_menu_delete_address">Emboguete kundaharape</string>
 
     <!-- Title of the Add search engine screen -->
     <string name="search_engine_add_custom_search_engine_title">Embojuaju hekaha</string>
@@ -1702,19 +1767,6 @@
     <!-- Text shown when a user successfully deletes a custom search engine -->
     <string name="search_delete_search_engine_success_message">Mboguete %s</string>
 
-    <!-- Title text shown for the migration screen to the new browser. Placeholder replaced with app name -->
-    <string moz:removedIn="100" name="migration_title" tools:ignore="UnusedResources">Eg̃uahẽporãite peteĩ %s ipyahuetévape</string>
-    <!-- Description text followed by a list of things migrating (e.g. Bookmarks, History). Placeholder replaced with app name-->
-    <string moz:removedIn="100" name="migration_description" tools:ignore="UnusedResources">Nera’arõ kundahára ipyahuetéva, oikóva ha hembiapoite porãvéva ne pytyvõ hag̃ua emba’apove hag̃ua ñandutípe.\n\nEha’arõ hekopyahu aja %s nde</string>
-    <!-- Text on the disabled button while in progress. Placeholder replaced with app name -->
-    <string moz:removedIn="100" name="migration_updating_app_button_text" tools:ignore="UnusedResources">Hekopyahuhína %s…</string>
-    <!-- Text on the enabled button. Placeholder replaced with app name-->
-    <string moz:removedIn="100" name="migration_update_app_button" tools:ignore="UnusedResources">Ñepyrũ %s</string>
-    <!-- Accessibility description text for a completed migration item -->
-    <string moz:removedIn="100" name="migration_icon_description" tools:ignore="UnusedResources">Ovapaitéma</string>
-    <!--Text on list of migrated items (e.g. Settings, History, etc.)-->
-    <string moz:removedIn="100" name="migration_text_passwords" tools:ignore="UnusedResources">Ñe’ẽñemi</string>
-
     <!-- Heading for the instructions to allow a permission -->
     <string name="phone_feature_blocked_intro">Emoneĩ hag̃ua:</string>
 
@@ -1744,10 +1796,6 @@
     <string name="no_site_exceptions">Ndaipóri oi’ỹva ko tendápe</string>
     <!-- Bookmark deletion confirmation -->
     <string name="bookmark_deletion_confirmation">¿Añetehápe emboguese ko techaukaha?</string>
-    <!-- Browser menu button that adds a top site to the home fragment -->
-    <string moz:RemovedIn="101" name="browser_menu_add_to_top_sites" tools:ignore="UnusedResources">Embojuaju tenda iporãvéva</string>
-    <!-- Browser menu button that removes a top site from the home fragment -->
-    <string moz:RemovedIn="101" name="browser_menu_remove_from_top_sites" tools:ignore="UnusedResources">Emboguete tenda ojepuruvévagui</string>
     <!-- Browser menu button that adds a shortcut to the home fragment -->
     <string name="browser_menu_add_to_shortcuts">Ojuajúva mbopya’eháre</string>
     <!-- Browser menu button that removes a shortcut from the home fragment -->
@@ -1811,8 +1859,6 @@
 
     <!-- Text displayed when user has no tabs that have been synced -->
     <string name="synced_tabs_no_tabs">Ndererekói tendayke ijurujáva Firefox-pe ambue ne mba’e’okápe.</string>
-    <!-- Text displayed when user has no tabs that have been synced. The first parameter is the name of the application.-->
-    <string moz:RemovedIn="100" name="synced_tabs_no_tabs_2" tools:ignore="UnusedResources">Ndererekói tendayke ijurujáva %1$s-pe ambue ne mba’e’okápe.</string>
     <!-- Text displayed in the synced tabs screen when a user is not signed in to Firefox Sync describing Synced Tabs -->
     <string name="synced_tabs_sign_in_message">Ehecha tendayke rysýi ambue ne mba’e’okápe.</string>
     <!-- Text displayed on a button in the synced tabs screen to link users to sign in when a user is not signed in to Firefox Sync -->
@@ -1827,12 +1873,8 @@
     <string name="synced_tabs_collapse_group">Emokañy tendayke aty mbojuehepyre</string>
 
     <!-- Top Sites -->
-    <!-- Title text displayed in the dialog when top sites limit is reached. -->
-    <string moz:RemovedIn="101" name="top_sites_max_limit_title" tools:ignore="UnusedResources">Ehupytýma hu’ã tenda mba’guasúvape g̃uarã</string>
     <!-- Title text displayed in the dialog when shortcuts limit is reached. -->
     <string name="shortcut_max_limit_title">Emohu’ãma mbopya’ehápe g̃uarã</string>
-    <!-- Content description text displayed in the dialog when top sites limit is reached. -->
-    <string moz:RemovedIn="101" name="top_sites_max_limit_content_2" tools:ignore="UnusedResources">Embojuaju hag̃ua tenda pyahu, embogue peteĩ. Ejopy are tenda ha eiporavo mboguete.</string>
     <!-- Content description text displayed in the dialog when shortcut limit is reached. -->
     <string name="shortcut_max_limit_content">Embojuaju hag̃ua jeike pyahu, embogue peteĩ. Ejopy are tenda ha eiporavo mboguete.</string>
     <!-- Confirmation dialog button text when top sites limit is reached. -->
@@ -1842,8 +1884,6 @@
     <string name="top_sites_toggle_top_recent_sites_4">Jeike pya’eha</string>
 	<!-- Title text displayed in the rename top site dialog. -->
 	<string name="top_sites_rename_dialog_title">Téra</string>
-	<!-- Hint for renaming title of a top site -->
-	<string moz:RemovedIn="101" name="top_site_name_hint" tools:ignore="UnusedResources">Tenda guasu réra</string>
     <!-- Hint for renaming title of a shortcut -->
     <string name="shortcut_name_hint">Mbopya’eha réra</string>
 	<!-- Button caption to confirm the renaming of the top site. -->
@@ -1863,6 +1903,11 @@
     <string name="inactive_tabs_title">Tendayke ojepuru’ỹva</string>
     <!-- Content description for closing all inactive tabs -->
     <string name="inactive_tabs_delete_all">Embotypaite tendayke ojepuru’ỹva</string>
+
+    <!-- Content description for expanding the inactive tabs section. -->
+    <string name="inactive_tabs_expand_content_description">Emyasãi tendayke ojepuru’ỹva</string>
+    <!-- Content description for collapsing the inactive tabs section. -->
+    <string name="inactive_tabs_collapse_content_description">Emomichĩ tendayke ojepuru’ỹva</string>
 
     <!-- Inactive tabs auto-close message in the tabs tray -->
     <!-- The header text of the auto-close message when the user is asked if they want to turn on the auto-closing of inactive tabs. -->
@@ -1905,8 +1950,12 @@
     <!-- Clickable text for opening an external link for more information about Pocket. -->
     <string name="pocket_stories_feature_learn_more">Kuaave</string>
 
+    <!-- Text indicating that the Pocket story that also displays this text is a sponsored story by other 3rd party entity. -->
+    <string name="pocket_stories_sponsor_indication">Pytyvõpyréva</string>
+
     <!-- Snackbar message for enrolling in a Nimbus experiment from the secret settings when Studies preference is Off.-->
     <string name="experiments_snackbar">Embojuruja telemetry emondo hag̃ua mba’ekuaarã.</string>
     <!-- Snackbar button text to navigate to telemetry settings.-->
     <string name="experiments_snackbar_button">Eho ñembohekópe</string>
+    <string name="firefox_suggest_header">Firefox Kuave’ẽmby</string>
 </resources>

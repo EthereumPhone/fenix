@@ -10,6 +10,7 @@ import androidx.test.uiautomator.UiSelector
 import org.junit.Assert.assertTrue
 import org.mozilla.fenix.helpers.TestAssetHelper.waitingTime
 import org.mozilla.fenix.helpers.TestHelper
+import org.mozilla.fenix.helpers.TestHelper.mDevice
 
 class SystemSettingsRobot {
     fun verifySystemNotificationsView() = assertSystemNotificationsView()
@@ -42,6 +43,6 @@ private fun assertSystemNotificationsView() {
         .waitForExists(waitingTime)
     assertTrue(
         mDevice.findObject(UiSelector().textContains("All ${TestHelper.appName} notifications"))
-            .waitForExists(waitingTime)
+            .waitForExists(waitingTime),
     )
 }

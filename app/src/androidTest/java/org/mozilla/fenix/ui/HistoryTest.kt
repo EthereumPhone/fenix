@@ -6,8 +6,8 @@ package org.mozilla.fenix.ui
 
 import android.content.Context
 import androidx.test.espresso.Espresso.openActionBarOverflowOrOptionsMenu
-import androidx.test.espresso.IdlingRegistry
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.uiautomator.UiDevice
 import kotlinx.coroutines.runBlocking
 import mozilla.components.browser.storage.sync.PlacesHistoryStorage
 import okhttp3.mockwebserver.MockWebServer
@@ -23,9 +23,9 @@ import org.mozilla.fenix.helpers.HomeActivityTestRule
 import org.mozilla.fenix.helpers.RecyclerViewIdlingResource
 import org.mozilla.fenix.helpers.TestAssetHelper
 import org.mozilla.fenix.helpers.TestHelper.longTapSelectItem
+import org.mozilla.fenix.helpers.TestHelper.registerAndCleanupIdlingResources
 import org.mozilla.fenix.ui.robots.historyMenu
 import org.mozilla.fenix.ui.robots.homeScreen
-import org.mozilla.fenix.ui.robots.mDevice
 import org.mozilla.fenix.ui.robots.multipleSelectionToolbar
 import org.mozilla.fenix.ui.robots.navigationToolbar
 
@@ -36,17 +36,17 @@ import org.mozilla.fenix.ui.robots.navigationToolbar
 class HistoryTest {
     /* ktlint-disable no-blank-line-before-rbrace */ // This imposes unreadable grouping.
     private lateinit var mockWebServer: MockWebServer
-    private var historyListIdlingResource: RecyclerViewIdlingResource? = null
-    private var recentlyClosedTabsListIdlingResource: RecyclerViewIdlingResource? = null
+    private lateinit var mDevice: UiDevice
 
     @get:Rule
-    val activityTestRule = HomeActivityTestRule()
+    val activityTestRule = HomeActivityTestRule.withDefaultSettingsOverrides()
 
     @Before
     fun setUp() {
         InstrumentationRegistry.getInstrumentation().targetContext.settings()
             .shouldShowJumpBackInCFR = false
 
+        mDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
         mockWebServer = MockWebServer().apply {
             dispatcher = AndroidAssetDispatcher()
             start()
@@ -63,14 +63,6 @@ class HistoryTest {
         runBlocking {
             historyStorage.deleteEverything()
         }
-
-        if (historyListIdlingResource != null) {
-            IdlingRegistry.getInstance().unregister(historyListIdlingResource!!)
-        }
-
-        if (recentlyClosedTabsListIdlingResource != null) {
-            IdlingRegistry.getInstance().unregister(recentlyClosedTabsListIdlingResource!!)
-        }
     }
 
     @Test
@@ -84,9 +76,9 @@ class HistoryTest {
         }
     }
 
-    @Test
     // Test running on beta/release builds in CI:
     // caution when making changes to it, so they don't block the builds
+    @Test
     fun visitedUrlHistoryTest() {
         val firstWebPage = TestAssetHelper.getGenericAsset(mockWebServer, 1)
 
@@ -96,13 +88,14 @@ class HistoryTest {
         }.openThreeDotMenu {
         }.openHistory {
             verifyHistoryListExists()
-            historyListIdlingResource =
-                RecyclerViewIdlingResource(activityTestRule.activity.findViewById(R.id.history_list), 1)
-            IdlingRegistry.getInstance().register(historyListIdlingResource!!)
-            verifyHistoryMenuView()
-            verifyVisitedTimeTitle()
-            verifyFirstTestPageTitle("Test_Page_1")
-            verifyTestPageUrl(firstWebPage.url)
+            registerAndCleanupIdlingResources(
+                RecyclerViewIdlingResource(activityTestRule.activity.findViewById(R.id.history_list), 1),
+            ) {
+                verifyHistoryMenuView()
+                verifyVisitedTimeTitle()
+                verifyFirstTestPageTitle("Test_Page_1")
+                verifyTestPageUrl(firstWebPage.url)
+            }
         }
     }
 
@@ -116,13 +109,58 @@ class HistoryTest {
         }.openThreeDotMenu {
         }.openHistory {
             verifyHistoryListExists()
-            historyListIdlingResource =
-                RecyclerViewIdlingResource(activityTestRule.activity.findViewById(R.id.history_list), 1)
-            IdlingRegistry.getInstance().register(historyListIdlingResource!!)
-            clickDeleteHistoryButton(firstWebPage.url.toString())
-            IdlingRegistry.getInstance().unregister(historyListIdlingResource!!)
+            registerAndCleanupIdlingResources(
+                RecyclerViewIdlingResource(activityTestRule.activity.findViewById(R.id.history_list), 1),
+            ) {
+                clickDeleteHistoryButton(firstWebPage.url.toString())
+            }
             verifyDeleteSnackbarText("Deleted")
             verifyEmptyHistoryView()
+        }
+    }
+
+    @Test
+    fun undoDeleteHistoryItemTest() {
+        val firstWebPage = TestAssetHelper.getGenericAsset(mockWebServer, 1)
+
+        navigationToolbar {
+        }.enterURLAndEnterToBrowser(firstWebPage.url) {
+            mDevice.waitForIdle()
+        }.openThreeDotMenu {
+        }.openHistory {
+            verifyHistoryListExists()
+            registerAndCleanupIdlingResources(
+                RecyclerViewIdlingResource(activityTestRule.activity.findViewById(R.id.history_list), 1),
+            ) {
+                clickDeleteHistoryButton(firstWebPage.url.toString())
+            }
+            verifyUndoDeleteSnackBarButton()
+            clickUndoDeleteButton()
+            verifyHistoryItemExists(true, firstWebPage.url.toString())
+        }
+    }
+
+    @SmokeTest
+    @Test
+    fun cancelDeleteAllHistoryTest() {
+        val firstWebPage = TestAssetHelper.getGenericAsset(mockWebServer, 1)
+
+        navigationToolbar {
+        }.enterURLAndEnterToBrowser(firstWebPage.url) {
+            mDevice.waitForIdle()
+        }.openThreeDotMenu {
+        }.openHistory {
+            verifyHistoryListExists()
+            registerAndCleanupIdlingResources(
+                RecyclerViewIdlingResource(activityTestRule.activity.findViewById(R.id.history_list), 1),
+            ) {
+                clickDeleteAllHistoryButton()
+
+            }
+            verifyDeleteConfirmationMessage()
+            selectEverythingOption()
+            cancelDeleteHistory()
+            verifyHistoryItemExists(true, firstWebPage.url.toString())
         }
     }
 
@@ -137,12 +175,13 @@ class HistoryTest {
         }.openThreeDotMenu {
         }.openHistory {
             verifyHistoryListExists()
-            historyListIdlingResource =
-                RecyclerViewIdlingResource(activityTestRule.activity.findViewById(R.id.history_list), 1)
-            IdlingRegistry.getInstance().register(historyListIdlingResource!!)
-            clickDeleteAllHistoryButton()
-            IdlingRegistry.getInstance().unregister(historyListIdlingResource!!)
+            registerAndCleanupIdlingResources(
+                RecyclerViewIdlingResource(activityTestRule.activity.findViewById(R.id.history_list), 1),
+            ) {
+                clickDeleteAllHistoryButton()
+            }
             verifyDeleteConfirmationMessage()
+            selectEverythingOption()
             confirmDeleteAllHistory()
             verifyDeleteSnackbarText("Browsing data deleted")
             verifyEmptyHistoryView()
@@ -160,10 +199,11 @@ class HistoryTest {
         }.openThreeDotMenu {
         }.openHistory {
             verifyHistoryListExists()
-            historyListIdlingResource =
-                RecyclerViewIdlingResource(activityTestRule.activity.findViewById(R.id.history_list), 1)
-            IdlingRegistry.getInstance().register(historyListIdlingResource!!)
-            longTapSelectItem(firstWebPage.url)
+            registerAndCleanupIdlingResources(
+                RecyclerViewIdlingResource(activityTestRule.activity.findViewById(R.id.history_list), 1),
+            ) {
+                longTapSelectItem(firstWebPage.url)
+            }
         }
 
         multipleSelectionToolbar {
@@ -190,11 +230,12 @@ class HistoryTest {
         homeScreen { }.openThreeDotMenu {
         }.openHistory {
             verifyHistoryListExists()
-            historyListIdlingResource =
-                RecyclerViewIdlingResource(activityTestRule.activity.findViewById(R.id.history_list), 1)
-            IdlingRegistry.getInstance().register(historyListIdlingResource!!)
-            longTapSelectItem(firstWebPage.url)
-            openActionBarOverflowOrOptionsMenu(activityTestRule.activity)
+            registerAndCleanupIdlingResources(
+                RecyclerViewIdlingResource(activityTestRule.activity.findViewById(R.id.history_list), 1),
+            ) {
+                longTapSelectItem(firstWebPage.url)
+                openActionBarOverflowOrOptionsMenu(activityTestRule.activity)
+            }
         }
 
         multipleSelectionToolbar {
@@ -214,11 +255,12 @@ class HistoryTest {
         }.openThreeDotMenu {
         }.openHistory {
             verifyHistoryListExists()
-            historyListIdlingResource =
-                RecyclerViewIdlingResource(activityTestRule.activity.findViewById(R.id.history_list), 1)
-            IdlingRegistry.getInstance().register(historyListIdlingResource!!)
-            longTapSelectItem(firstWebPage.url)
-            openActionBarOverflowOrOptionsMenu(activityTestRule.activity)
+            registerAndCleanupIdlingResources(
+                RecyclerViewIdlingResource(activityTestRule.activity.findViewById(R.id.history_list), 1),
+            ) {
+                longTapSelectItem(firstWebPage.url)
+                openActionBarOverflowOrOptionsMenu(activityTestRule.activity)
+            }
         }
 
         multipleSelectionToolbar {
@@ -242,15 +284,15 @@ class HistoryTest {
         }.openThreeDotMenu {
         }.openHistory {
             verifyHistoryListExists()
-            historyListIdlingResource =
-                RecyclerViewIdlingResource(activityTestRule.activity.findViewById(R.id.history_list), 2)
-            IdlingRegistry.getInstance().register(historyListIdlingResource!!)
-            verifyHistoryItemExists(true, firstWebPage.url.toString())
-            verifyHistoryItemExists(true, secondWebPage.url.toString())
-            longTapSelectItem(firstWebPage.url)
-            longTapSelectItem(secondWebPage.url)
-            openActionBarOverflowOrOptionsMenu(activityTestRule.activity)
-            IdlingRegistry.getInstance().unregister(historyListIdlingResource!!)
+            registerAndCleanupIdlingResources(
+                RecyclerViewIdlingResource(activityTestRule.activity.findViewById(R.id.history_list), 2),
+            ) {
+                verifyHistoryItemExists(true, firstWebPage.url.toString())
+                verifyHistoryItemExists(true, secondWebPage.url.toString())
+                longTapSelectItem(firstWebPage.url)
+                longTapSelectItem(secondWebPage.url)
+                openActionBarOverflowOrOptionsMenu(activityTestRule.activity)
+            }
         }
 
         multipleSelectionToolbar {
@@ -272,10 +314,11 @@ class HistoryTest {
         }.openThreeDotMenu {
         }.openHistory {
             verifyHistoryListExists()
-            historyListIdlingResource =
-                RecyclerViewIdlingResource(activityTestRule.activity.findViewById(R.id.history_list), 1)
-            IdlingRegistry.getInstance().register(historyListIdlingResource!!)
-            longTapSelectItem(firstWebPage.url)
+            registerAndCleanupIdlingResources(
+                RecyclerViewIdlingResource(activityTestRule.activity.findViewById(R.id.history_list), 1),
+            ) {
+                longTapSelectItem(firstWebPage.url)
+            }
         }
 
         multipleSelectionToolbar {
@@ -287,8 +330,8 @@ class HistoryTest {
         }
     }
 
-    @Test
     // This test verifies the Recently Closed Tabs List and items
+    @Test
     fun verifyRecentlyClosedTabsListTest() {
         val website = TestAssetHelper.getGenericAsset(mockWebServer, 1)
 
@@ -301,11 +344,11 @@ class HistoryTest {
         }.openTabDrawer {
         }.openRecentlyClosedTabs {
             waitForListToExist()
-            recentlyClosedTabsListIdlingResource =
-                RecyclerViewIdlingResource(activityTestRule.activity.findViewById(R.id.recently_closed_list), 1)
-            IdlingRegistry.getInstance().register(recentlyClosedTabsListIdlingResource!!)
-            verifyRecentlyClosedTabsMenuView()
-            IdlingRegistry.getInstance().unregister(recentlyClosedTabsListIdlingResource!!)
+            registerAndCleanupIdlingResources(
+                RecyclerViewIdlingResource(activityTestRule.activity.findViewById(R.id.recently_closed_list), 1),
+            ) {
+                verifyRecentlyClosedTabsMenuView()
+            }
             verifyRecentlyClosedTabsPageTitle("Test_Page_1")
             verifyRecentlyClosedTabsUrl(website.url)
         }

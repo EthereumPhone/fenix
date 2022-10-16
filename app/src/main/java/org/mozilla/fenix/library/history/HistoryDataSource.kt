@@ -16,7 +16,6 @@ import org.mozilla.fenix.components.history.PagedHistoryProvider
  */
 class HistoryDataSource(
     private val historyProvider: PagedHistoryProvider,
-    private val isRemote: Boolean? = null,
 ) : PagingSource<Int, History>() {
 
     // The refresh key is set to null so that it will always reload the entire list for any data
@@ -27,18 +26,18 @@ class HistoryDataSource(
         // Get the offset of the last loaded page or default to 0 when it is null on the initial
         // load or a refresh.
         val offset = params.key ?: 0
-        val historyItems = historyProvider.getHistory(offset, params.loadSize, isRemote).run {
+        val historyItems = historyProvider.getHistory(offset, params.loadSize).run {
             positionWithOffset(offset)
         }
         val nextOffset = if (historyItems.isEmpty()) {
             null
         } else {
-            historyItems.last().position + 1
+            offset + params.loadSize
         }
         return LoadResult.Page(
             data = historyItems,
             prevKey = null, // Only paging forward.
-            nextKey = nextOffset
+            nextKey = nextOffset,
         )
     }
 }
@@ -105,5 +104,6 @@ private fun HistoryDB.Regular.positioned(position: Int): History.Regular {
         url = this.url,
         visitedAt = this.visitedAt,
         historyTimeGroup = this.historyTimeGroup,
+        isRemote = this.isRemote,
     )
 }

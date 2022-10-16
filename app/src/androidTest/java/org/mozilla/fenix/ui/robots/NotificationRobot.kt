@@ -15,8 +15,10 @@ import org.junit.Assert.assertTrue
 import org.mozilla.fenix.helpers.TestAssetHelper.waitingTime
 import org.mozilla.fenix.helpers.TestHelper
 import org.mozilla.fenix.helpers.TestHelper.appName
+import org.mozilla.fenix.helpers.TestHelper.mDevice
 import org.mozilla.fenix.helpers.ext.waitNotNull
 import java.lang.AssertionError
+import org.mozilla.fenix.helpers.TestAssetHelper.waitingTimeShort
 
 class NotificationRobot {
 
@@ -52,19 +54,19 @@ class NotificationRobot {
     fun verifySystemNotificationGone(notificationMessage: String) {
         mDevice.waitNotNull(
             Until.gone(text(notificationMessage)),
-            waitingTime
+            waitingTime,
         )
 
         assertFalse(
             mDevice.findObject(
-                UiSelector().text(notificationMessage)
-            ).exists()
+                UiSelector().text(notificationMessage),
+            ).exists(),
         )
     }
 
     fun verifyPrivateTabsNotification() {
-        mDevice.waitNotNull(Until.hasObject(text("Close private tabs")), waitingTime)
-        assertPrivateTabsNotification()
+        verifySystemNotificationExists("$appName (Private)")
+        verifySystemNotificationExists("Close private tabs")
     }
 
     fun clickMediaNotificationControlButton(action: String) {
@@ -73,9 +75,13 @@ class NotificationRobot {
     }
 
     fun clickDownloadNotificationControlButton(action: String) {
-        assertTrue(downloadSystemNotificationButton(action).waitForExists(waitingTime))
-        downloadSystemNotificationButton(action).click()
+        try {
+            assertTrue(downloadSystemNotificationButton(action).waitForExists(waitingTimeShort))
+        } catch (e: AssertionError) {
+            notificationTray().flingToEnd(1)
+        }
 
+        downloadSystemNotificationButton(action).click()
         // API 30 Bug? Sometimes a click doesn't register, try again
         try {
             assertTrue(downloadSystemNotificationButton(action).waitUntilGone(waitingTime))
@@ -86,10 +92,6 @@ class NotificationRobot {
 
     fun verifyMediaSystemNotificationButtonState(action: String) {
         assertTrue(mediaSystemNotificationButton(action).waitForExists(waitingTime))
-    }
-
-    fun verifyDownloadSystemNotificationButtonState(action: String) {
-        assertTrue(downloadSystemNotificationButton(action).waitForExists(waitingTime))
     }
 
     fun expandNotificationMessage() {
@@ -113,7 +115,14 @@ class NotificationRobot {
     class Transition {
 
         fun clickClosePrivateTabsNotification(interact: HomeScreenRobot.() -> Unit): HomeScreenRobot.Transition {
-            NotificationRobot().verifySystemNotificationExists("Close private tabs")
+            try {
+                assertTrue(
+                    closePrivateTabsNotification().exists(),
+                )
+            } catch (e: AssertionError) {
+                notificationTray().flingToEnd(1)
+            }
+
             closePrivateTabsNotification().click()
 
             HomeScreenRobot().interact()
@@ -127,11 +136,6 @@ fun notificationShade(interact: NotificationRobot.() -> Unit): NotificationRobot
     return NotificationRobot.Transition()
 }
 
-private fun assertPrivateTabsNotification() {
-    mDevice.findObject(UiSelector().text("Firefox Preview (Private)")).exists()
-    mDevice.findObject(UiSelector().text("Close private tabs")).exists()
-}
-
 private fun closePrivateTabsNotification() =
     mDevice.findObject(UiSelector().text("Close private tabs"))
 
@@ -139,25 +143,25 @@ private fun downloadSystemNotificationButton(action: String) =
     mDevice.findObject(
         UiSelector()
             .resourceId("android:id/action0")
-            .textContains(action)
+            .textContains(action),
     )
 
 private fun mediaSystemNotificationButton(action: String) =
     mDevice.findObject(
         UiSelector()
             .resourceId("com.android.systemui:id/action0")
-            .descriptionContains(action)
+            .descriptionContains(action),
     )
 
 private fun notificationTray() = UiScrollable(
-    UiSelector().resourceId("com.android.systemui:id/notification_stack_scroller")
+    UiSelector().resourceId("com.android.systemui:id/notification_stack_scroller"),
 ).setAsVerticalList()
 
 private val notificationHeader =
     mDevice.findObject(
         UiSelector()
             .resourceId("android:id/app_name_text")
-            .text(appName)
+            .text(appName),
     )
 
 private fun scrollToEnd() {

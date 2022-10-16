@@ -10,8 +10,8 @@ import mozilla.components.browser.state.search.SearchEngine
 import mozilla.components.service.glean.testing.GleanTestRule
 import mozilla.components.support.test.robolectric.testContext
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -32,7 +32,7 @@ class MetricsUtilsTestRobolectric {
 
     @Test
     fun `given a CUSTOM engine, when the search source is a ACTION the proper labeled metric is recorded`() {
-        assertFalse(Metrics.searchCount["custom.action"].testHasValue())
+        assertNull(Metrics.searchCount["custom.action"].testGetValue())
 
         val engine: SearchEngine = mockk(relaxed = true)
 
@@ -42,15 +42,15 @@ class MetricsUtilsTestRobolectric {
         MetricsUtils.recordSearchMetrics(
             engine,
             false,
-            MetricsUtils.Source.ACTION
+            MetricsUtils.Source.ACTION,
         )
 
-        assertTrue(Metrics.searchCount["custom.action"].testHasValue())
+        assertNotNull(Metrics.searchCount["custom.action"].testGetValue())
     }
 
     @Test
     fun `given a CUSTOM engine, when the search source is a SHORTCUT the proper labeled metric is recorded`() {
-        assertFalse(Metrics.searchCount["custom.shortcut"].testHasValue())
+        assertNull(Metrics.searchCount["custom.shortcut"].testGetValue())
 
         val engine: SearchEngine = mockk(relaxed = true)
 
@@ -60,15 +60,15 @@ class MetricsUtilsTestRobolectric {
         MetricsUtils.recordSearchMetrics(
             engine,
             false,
-            MetricsUtils.Source.SHORTCUT
+            MetricsUtils.Source.SHORTCUT,
         )
 
-        assertTrue(Metrics.searchCount["custom.shortcut"].testHasValue())
+        assertNotNull(Metrics.searchCount["custom.shortcut"].testGetValue())
     }
 
     @Test
     fun `given a CUSTOM engine, when the search source is a SUGGESTION the proper labeled metric is recorded`() {
-        assertFalse(Metrics.searchCount["custom.suggestion"].testHasValue())
+        assertNull(Metrics.searchCount["custom.suggestion"].testGetValue())
 
         val engine: SearchEngine = mockk(relaxed = true)
 
@@ -78,15 +78,15 @@ class MetricsUtilsTestRobolectric {
         MetricsUtils.recordSearchMetrics(
             engine,
             false,
-            MetricsUtils.Source.SUGGESTION
+            MetricsUtils.Source.SUGGESTION,
         )
 
-        assertTrue(Metrics.searchCount["custom.suggestion"].testHasValue())
+        assertNotNull(Metrics.searchCount["custom.suggestion"].testGetValue())
     }
 
     @Test
     fun `given a CUSTOM engine, when the search source is a TOPSITE the proper labeled metric is recorded`() {
-        assertFalse(Metrics.searchCount["custom.topsite"].testHasValue())
+        assertNull(Metrics.searchCount["custom.topsite"].testGetValue())
 
         val engine: SearchEngine = mockk(relaxed = true)
 
@@ -96,15 +96,15 @@ class MetricsUtilsTestRobolectric {
         MetricsUtils.recordSearchMetrics(
             engine,
             false,
-            MetricsUtils.Source.TOPSITE
+            MetricsUtils.Source.TOPSITE,
         )
 
-        assertTrue(Metrics.searchCount["custom.topsite"].testHasValue())
+        assertNotNull(Metrics.searchCount["custom.topsite"].testGetValue())
     }
 
     @Test
     fun `given a CUSTOM engine, when the search source is a WIDGET the proper labeled metric is recorded`() {
-        assertFalse(Metrics.searchCount["custom.widget"].testHasValue())
+        assertNull(Metrics.searchCount["custom.widget"].testGetValue())
 
         val engine: SearchEngine = mockk(relaxed = true)
 
@@ -114,15 +114,15 @@ class MetricsUtilsTestRobolectric {
         MetricsUtils.recordSearchMetrics(
             engine,
             false,
-            MetricsUtils.Source.WIDGET
+            MetricsUtils.Source.WIDGET,
         )
 
-        assertTrue(Metrics.searchCount["custom.widget"].testHasValue())
+        assertNotNull(Metrics.searchCount["custom.widget"].testGetValue())
     }
 
     @Test
     fun `given a BUNDLED engine, when the search source is an ACTION the proper labeled metric is recorded`() {
-        assertFalse(Metrics.searchCount["$ENGINE_SOURCE_IDENTIFIER.action"].testHasValue())
+        assertNull(Metrics.searchCount["$ENGINE_SOURCE_IDENTIFIER.action"].testGetValue())
 
         val engine: SearchEngine = mockk(relaxed = true)
 
@@ -132,15 +132,15 @@ class MetricsUtilsTestRobolectric {
         MetricsUtils.recordSearchMetrics(
             engine,
             false,
-            MetricsUtils.Source.ACTION
+            MetricsUtils.Source.ACTION,
         )
 
-        assertTrue(Metrics.searchCount["$ENGINE_SOURCE_IDENTIFIER.action"].testHasValue())
+        assertNotNull(Metrics.searchCount["$ENGINE_SOURCE_IDENTIFIER.action"].testGetValue())
     }
 
     @Test
     fun `given a BUNDLED engine, when the search source is a TOPSITE the proper labeled metric is recorded`() {
-        assertFalse(Metrics.searchCount["$ENGINE_SOURCE_IDENTIFIER.topsite"].testHasValue())
+        assertNull(Metrics.searchCount["$ENGINE_SOURCE_IDENTIFIER.topsite"].testGetValue())
 
         val engine: SearchEngine = mockk(relaxed = true)
 
@@ -150,15 +150,15 @@ class MetricsUtilsTestRobolectric {
         MetricsUtils.recordSearchMetrics(
             engine,
             false,
-            MetricsUtils.Source.TOPSITE
+            MetricsUtils.Source.TOPSITE,
         )
 
-        assertTrue(Metrics.searchCount["$ENGINE_SOURCE_IDENTIFIER.topsite"].testHasValue())
+        assertNotNull(Metrics.searchCount["$ENGINE_SOURCE_IDENTIFIER.topsite"].testGetValue())
     }
 
     @Test
     fun `given a BUNDLED engine, when the search source is a SHORTCUT the proper labeled metric is recorded`() {
-        assertFalse(Metrics.searchCount["$ENGINE_SOURCE_IDENTIFIER.shortcut"].testHasValue())
+        assertNull(Metrics.searchCount["$ENGINE_SOURCE_IDENTIFIER.shortcut"].testGetValue())
 
         val engine: SearchEngine = mockk(relaxed = true)
 
@@ -168,15 +168,15 @@ class MetricsUtilsTestRobolectric {
         MetricsUtils.recordSearchMetrics(
             engine,
             false,
-            MetricsUtils.Source.SHORTCUT
+            MetricsUtils.Source.SHORTCUT,
         )
 
-        assertTrue(Metrics.searchCount["$ENGINE_SOURCE_IDENTIFIER.shortcut"].testHasValue())
+        assertNotNull(Metrics.searchCount["$ENGINE_SOURCE_IDENTIFIER.shortcut"].testGetValue())
     }
 
     @Test
     fun `given a BUNDLED engine, when the search source is a SUGGESTION the proper labeled metric is recorded`() {
-        assertFalse(Metrics.searchCount["$ENGINE_SOURCE_IDENTIFIER.suggestion"].testHasValue())
+        assertNull(Metrics.searchCount["$ENGINE_SOURCE_IDENTIFIER.suggestion"].testGetValue())
 
         val engine: SearchEngine = mockk(relaxed = true)
 
@@ -186,15 +186,15 @@ class MetricsUtilsTestRobolectric {
         MetricsUtils.recordSearchMetrics(
             engine,
             false,
-            MetricsUtils.Source.SUGGESTION
+            MetricsUtils.Source.SUGGESTION,
         )
 
-        assertTrue(Metrics.searchCount["$ENGINE_SOURCE_IDENTIFIER.suggestion"].testHasValue())
+        assertNotNull(Metrics.searchCount["$ENGINE_SOURCE_IDENTIFIER.suggestion"].testGetValue())
     }
 
     @Test
     fun `given a BUNDLED engine, when the search source is a WIDGET the proper labeled metric is recorded`() {
-        assertFalse(Metrics.searchCount["$ENGINE_SOURCE_IDENTIFIER.widget"].testHasValue())
+        assertNull(Metrics.searchCount["$ENGINE_SOURCE_IDENTIFIER.widget"].testGetValue())
 
         val engine: SearchEngine = mockk(relaxed = true)
 
@@ -204,15 +204,34 @@ class MetricsUtilsTestRobolectric {
         MetricsUtils.recordSearchMetrics(
             engine,
             false,
-            MetricsUtils.Source.WIDGET
+            MetricsUtils.Source.WIDGET,
         )
 
-        assertTrue(Metrics.searchCount["$ENGINE_SOURCE_IDENTIFIER.widget"].testHasValue())
+        assertNotNull(Metrics.searchCount["$ENGINE_SOURCE_IDENTIFIER.widget"].testGetValue())
+    }
+
+    @Test
+    fun `given a BUNDLED engine with an uppercase id, when recording a new search with that engine then record using lowercase`() {
+        val searchEngineId = "Uppercase-Id"
+        assertNull(Metrics.searchCount["$searchEngineId.widget"].testGetValue())
+
+        val engine: SearchEngine = mockk(relaxed = true)
+
+        every { engine.id } returns searchEngineId
+        every { engine.type } returns SearchEngine.Type.BUNDLED
+
+        MetricsUtils.recordSearchMetrics(
+            engine,
+            false,
+            MetricsUtils.Source.WIDGET,
+        )
+
+        assertNotNull(Metrics.searchCount["${searchEngineId.lowercase()}.widget"].testGetValue())
     }
 
     @Test
     fun `given a DEFAULT engine, when the search source is a WIDGET the proper labeled metric is recorded`() {
-        assertFalse(Events.performedSearch.testHasValue())
+        assertNull(Events.performedSearch.testGetValue())
 
         val engine: SearchEngine = mockk(relaxed = true)
 
@@ -222,18 +241,18 @@ class MetricsUtilsTestRobolectric {
         MetricsUtils.recordSearchMetrics(
             engine,
             true,
-            MetricsUtils.Source.WIDGET
+            MetricsUtils.Source.WIDGET,
         )
 
-        assertTrue(Events.performedSearch.testHasValue())
-        val snapshot = Events.performedSearch.testGetValue()
+        assertNotNull(Events.performedSearch.testGetValue())
+        val snapshot = Events.performedSearch.testGetValue()!!
         assertEquals(1, snapshot.size)
         assertEquals("default.widget", snapshot.single().extra?.getValue("source"))
     }
 
     @Test
     fun `given a NON DEFAULT engine, when the search source is a WIDGET the proper labeled metric is recorded`() {
-        assertFalse(Events.performedSearch.testHasValue())
+        assertNull(Events.performedSearch.testGetValue())
 
         val engine: SearchEngine = mockk(relaxed = true)
 
@@ -243,11 +262,11 @@ class MetricsUtilsTestRobolectric {
         MetricsUtils.recordSearchMetrics(
             engine,
             false,
-            MetricsUtils.Source.WIDGET
+            MetricsUtils.Source.WIDGET,
         )
 
-        assertTrue(Events.performedSearch.testHasValue())
-        val snapshot = Events.performedSearch.testGetValue()
+        assertNotNull(Events.performedSearch.testGetValue())
+        val snapshot = Events.performedSearch.testGetValue()!!
         assertEquals(1, snapshot.size)
         assertEquals("shortcut.widget", snapshot.single().extra?.getValue("source"))
     }

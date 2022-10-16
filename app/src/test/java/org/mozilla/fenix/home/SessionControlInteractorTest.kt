@@ -9,7 +9,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import mozilla.components.feature.tab.collections.Tab
 import mozilla.components.feature.tab.collections.TabCollection
-import mozilla.components.service.pocket.PocketRecommendedStory
+import mozilla.components.service.pocket.PocketStory
 import org.junit.Before
 import org.junit.Test
 import org.mozilla.fenix.browser.browsingmode.BrowsingMode
@@ -46,7 +46,7 @@ class SessionControlInteractorTest {
             recentSyncedTabController,
             recentBookmarksController,
             recentVisitsController,
-            pocketStoriesController
+            pocketStoriesController,
         )
     }
 
@@ -163,10 +163,9 @@ class SessionControlInteractorTest {
     }
 
     @Test
-    fun onRecentSearchGroupClicked() {
-        val tabId = "tabId"
-        interactor.onRecentSearchGroupClicked(tabId)
-        verify { recentTabController.handleRecentSearchGroupClicked(tabId) }
+    fun onRecentTabLongClicked() {
+        interactor.onRecentTabLongClicked()
+        verify { recentTabController.handleRecentTabLongClicked() }
     }
 
     @Test
@@ -199,15 +198,15 @@ class SessionControlInteractorTest {
     }
 
     @Test
-    fun `WHEN tapping on the customize home button THEN openCustomizeHomePage`() {
-        interactor.openCustomizeHomePage()
-        verify { controller.handleCustomizeHomeTapped() }
+    fun `WHEN a recent bookmark is long clicked THEN the long click is handled`() {
+        interactor.onRecentBookmarkLongClicked()
+        verify { recentBookmarksController.handleBookmarkLongClicked() }
     }
 
     @Test
-    fun `WHEN calling showOnboardingDialog THEN handleShowOnboardingDialog`() {
-        interactor.showOnboardingDialog()
-        verify { controller.handleShowOnboardingDialog() }
+    fun `WHEN tapping on the customize home button THEN openCustomizeHomePage`() {
+        interactor.openCustomizeHomePage()
+        verify { controller.handleCustomizeHomeTapped() }
     }
 
     @Test
@@ -238,8 +237,18 @@ class SessionControlInteractorTest {
     }
 
     @Test
+    fun `GIVEN a PocketStoriesInteractor WHEN a story is shown THEN handle it in a PocketStoriesController`() {
+        val shownStory: PocketStory = mockk()
+        val storyGridLocation = 1 to 2
+
+        interactor.onStoryShown(shownStory, storyGridLocation)
+
+        verify { pocketStoriesController.handleStoryShown(shownStory, storyGridLocation) }
+    }
+
+    @Test
     fun `GIVEN a PocketStoriesInteractor WHEN stories are shown THEN handle it in a PocketStoriesController`() {
-        val shownStories: List<PocketRecommendedStory> = mockk()
+        val shownStories: List<PocketStory> = mockk()
 
         interactor.onStoriesShown(shownStories)
 
@@ -257,7 +266,7 @@ class SessionControlInteractorTest {
 
     @Test
     fun `GIVEN a PocketStoriesInteractor WHEN a story is clicked THEN handle it in a PocketStoriesController`() {
-        val clickedStory: PocketRecommendedStory = mockk()
+        val clickedStory: PocketStory = mockk()
         val storyGridLocation = 1 to 2
 
         interactor.onStoryClicked(clickedStory, storyGridLocation)

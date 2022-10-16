@@ -1,4 +1,9 @@
 ---
+about:
+  description: Nimbus Feature Manifest for Fenix (Firefox Android)
+  kotlin:
+    package: org.mozilla.fenix
+    class: .nimbus.FxNimbus
 channels:
   - release
   - beta
@@ -19,7 +24,7 @@ features:
             "recently-saved": true,
             "recent-explorations": true,
             "pocket": true,
-            "contile-top-sites": false,
+            "pocket-sponsored-stories": false,
           }
     defaults:
       - channel: nightly
@@ -30,7 +35,12 @@ features:
             "recently-saved": true,
             "recent-explorations": true,
             "pocket": true,
-            "contile-top-sites": false,
+          }
+        }
+      - channel: developer
+        value: {
+          "sections-enabled": {
+            "pocket-sponsored-stories": true,
           }
         }
   nimbus-validation:
@@ -63,13 +73,6 @@ features:
       - channel: developer
         value:
           enabled: true
-  default-browser-message:
-    description: A small feature allowing experiments on the placement of a default browser message.
-    variables:
-      message-location:
-        description: Where is the message to be put.
-        type: Option<MessageSurfaceId>
-        default: null
   messaging:
     description: |
       Configuration for the messaging system.
@@ -125,6 +128,7 @@ features:
             NEVER: "false"
             I_AM_DEFAULT_BROWSER: "is_default_browser_string == 'true'"
             I_AM_NOT_DEFAULT_BROWSER: "is_default_browser_string == 'false'"
+            USER_ESTABLISHED_INSTALL: "number_of_app_launches >=4"
           actions:
             ENABLE_PRIVATE_BROWSING: ://enable_private_browsing
             INSTALL_SEARCH_WIDGET: ://install_search_widget
@@ -164,8 +168,8 @@ features:
             default-browser:
               text: default_browser_experiment_card_text
               action: "MAKE_DEFAULT_BROWSER"
-              trigger: [ "I_AM_NOT_DEFAULT_BROWSER" ]
-              style: "DEFAULT"
+              trigger: [ "I_AM_NOT_DEFAULT_BROWSER","USER_ESTABLISHED_INSTALL" ]
+              style: "PERSISTENT"
               button-label: preferences_set_as_default_browser
 
       - channel: developer
@@ -177,6 +181,31 @@ features:
             EXPIRES_QUICKLY:
               priority: 100
               max-display-count: 1
+  mr2022:
+    description: Features for MR 2022.
+    variables:
+      sections-enabled:
+        description: "This property provides a lookup table of whether or not the given section should be enabled."
+        type: Map<MR2022Section, Boolean>
+        default:
+          {
+            "home-onboarding-dialog-existing-users": true,
+            "sync-cfr": true,
+            "wallpapers-selection-tool": true,
+            "jump-back-in-cfr": true,
+            "tcp-cfr": true,
+            "tcp-feature": true
+          }
+    defaults:
+      - channel: developer
+        value: {
+          "sections-enabled": {
+            "home-onboarding-dialog-existing-users": true,
+            "sync-cfr": true,
+            "wallpapers-selection-tool": true,
+            "jump-back-in-cfr": true,
+          }
+        }
 
   unified-search:
     description: A feature allowing user to easily search for specified results directly in the search bar.
@@ -277,8 +306,8 @@ types:
           description: The tab groups
         pocket:
           description: The pocket section. This should only be available in the US.
-        contile-top-sites:
-          description: The sponsored shortcuts in the homescreen.
+        pocket-sponsored-stories:
+          description: Subsection of the Pocket homescreen section which shows sponsored stories.
     MessageSurfaceId:
       description: The identity of a message surface, used in the default browser experiments
       variants:
@@ -288,4 +317,18 @@ types:
           description: A setting in the settings screen.
         homescreen-banner:
           description: A banner in the homescreen.
-
+    MR2022Section:
+      description: The identifiers for the sections of the MR 2022.
+      variants:
+        home-onboarding-dialog-existing-users:
+          description: Home onboarding dialog for upgraded users.
+        sync-cfr:
+          description: CFR for the first time you see a synced tab on the home screen.
+        wallpapers-selection-tool:
+          description: Wallpapers selection dialog tool for the home screen.
+        jump-back-in-cfr:
+          description: Jump back-in onboarding message.
+        tcp-cfr:
+          description: CFR for the first time you use the browse with Total Cookie Protection on the browser screen.
+        tcp-feature:
+          description: Controls the Total Cookie Protection feature.

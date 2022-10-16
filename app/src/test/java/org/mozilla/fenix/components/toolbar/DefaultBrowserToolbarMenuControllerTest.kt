@@ -51,7 +51,6 @@ import mozilla.components.support.test.rule.MainCoroutineRule
 import mozilla.components.support.test.rule.runTestOnMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -85,25 +84,42 @@ class DefaultBrowserToolbarMenuControllerTest {
 
     @get:Rule
     val coroutinesTestRule = MainCoroutineRule()
+
     @get:Rule
     val gleanTestRule = GleanTestRule(testContext)
 
     @MockK private lateinit var swipeRefreshLayout: SwipeRefreshLayout
+
     @RelaxedMockK private lateinit var activity: HomeActivity
+
     @RelaxedMockK private lateinit var navController: NavController
+
     @RelaxedMockK private lateinit var openInFenixIntent: Intent
+
     @RelaxedMockK private lateinit var settings: Settings
+
     @RelaxedMockK private lateinit var searchUseCases: SearchUseCases
+
     @RelaxedMockK private lateinit var sessionUseCases: SessionUseCases
+
     @RelaxedMockK private lateinit var customTabUseCases: CustomTabsUseCases
+
     @RelaxedMockK private lateinit var browserAnimator: BrowserAnimator
+
     @RelaxedMockK private lateinit var snackbar: FenixSnackbar
+
     @RelaxedMockK private lateinit var tabCollectionStorage: TabCollectionStorage
+
     @RelaxedMockK private lateinit var topSitesUseCase: TopSitesUseCases
+
     @RelaxedMockK private lateinit var readerModeController: ReaderModeController
+
     @MockK private lateinit var sessionFeatureWrapper: ViewBoundFeatureWrapper<SessionFeature>
+
     @RelaxedMockK private lateinit var sessionFeature: SessionFeature
+
     @RelaxedMockK private lateinit var topSitesStorage: DefaultTopSitesStorage
+
     @RelaxedMockK private lateinit var pinnedSiteStorage: PinnedSiteStorage
 
     private lateinit var browserStore: BrowserStore
@@ -114,7 +130,7 @@ class DefaultBrowserToolbarMenuControllerTest {
         MockKAnnotations.init(this)
 
         mockkStatic(
-            "org.mozilla.fenix.settings.deletebrowsingdata.DeleteAndQuitKt"
+            "org.mozilla.fenix.settings.deletebrowsingdata.DeleteAndQuitKt",
         )
         every { deleteAndQuit(any(), any(), any()) } just Runs
 
@@ -138,8 +154,8 @@ class DefaultBrowserToolbarMenuControllerTest {
         browserStore = BrowserStore(
             initialState = BrowserState(
                 tabs = listOf(selectedTab),
-                selectedTabId = selectedTab.id
-            )
+                selectedTabId = selectedTab.id,
+            ),
         )
     }
 
@@ -158,26 +174,27 @@ class DefaultBrowserToolbarMenuControllerTest {
         val regularTab = createTab(
             url = expectedUrl,
             readerState = ReaderState(active = false, activeUrl = "https://1234.org"),
-            title = expectedTitle
+            title = expectedTitle,
         )
         val store =
             BrowserStore(BrowserState(tabs = listOf(regularTab), selectedTabId = regularTab.id))
 
         var bookmarkTappedInvoked = false
         val controller = createController(
-            scope = this, store = store,
+            scope = this,
+            store = store,
             bookmarkTapped = { url, title ->
                 assertEquals(expectedTitle, title)
                 assertEquals(expectedUrl, url)
                 bookmarkTappedInvoked = true
-            }
+            },
         )
-        assertFalse(Events.browserMenuAction.testHasValue())
+        assertNull(Events.browserMenuAction.testGetValue())
 
         controller.handleToolbarItemInteraction(item)
 
-        assertTrue(Events.browserMenuAction.testHasValue())
-        val snapshot = Events.browserMenuAction.testGetValue()
+        assertNotNull(Events.browserMenuAction.testGetValue())
+        val snapshot = Events.browserMenuAction.testGetValue()!!
         assertEquals(1, snapshot.size)
         assertEquals("bookmark", snapshot.single().extra?.getValue("item"))
 
@@ -192,26 +209,27 @@ class DefaultBrowserToolbarMenuControllerTest {
         val readerTab = createTab(
             url = readerUrl,
             readerState = ReaderState(active = true, activeUrl = "https://mozilla.org"),
-            title = expectedTitle
+            title = expectedTitle,
         )
         browserStore =
             BrowserStore(BrowserState(tabs = listOf(readerTab), selectedTabId = readerTab.id))
 
         var bookmarkTappedInvoked = false
         val controller = createController(
-            scope = this, store = browserStore,
+            scope = this,
+            store = browserStore,
             bookmarkTapped = { url, title ->
                 assertEquals(expectedTitle, title)
                 assertEquals(readerTab.readerState.activeUrl, url)
                 bookmarkTappedInvoked = true
-            }
+            },
         )
-        assertFalse(Events.browserMenuAction.testHasValue())
+        assertNull(Events.browserMenuAction.testGetValue())
 
         controller.handleToolbarItemInteraction(item)
 
-        assertTrue(Events.browserMenuAction.testHasValue())
-        val snapshot = Events.browserMenuAction.testGetValue()
+        assertNotNull(Events.browserMenuAction.testGetValue())
+        val snapshot = Events.browserMenuAction.testGetValue()!!
         assertEquals(1, snapshot.size)
         assertEquals("bookmark", snapshot.single().extra?.getValue("item"))
 
@@ -225,7 +243,7 @@ class DefaultBrowserToolbarMenuControllerTest {
         val controller = createController(
             scope = this,
             store = browserStore,
-            customTabSessionId = customTab.id
+            customTabSessionId = customTab.id,
         )
 
         val item = ToolbarMenu.Item.OpenInFenix
@@ -242,15 +260,15 @@ class DefaultBrowserToolbarMenuControllerTest {
     @Test
     fun `WHEN reader mode menu item is pressed THEN handle appearance change`() = runTest {
         val item = ToolbarMenu.Item.CustomizeReaderView
-        assertFalse(ReaderMode.appearance.testHasValue())
+        assertNull(ReaderMode.appearance.testGetValue())
 
         val controller = createController(scope = this, store = browserStore)
 
         controller.handleToolbarItemInteraction(item)
 
         verify { readerModeController.showControls() }
-        assertTrue(ReaderMode.appearance.testHasValue())
-        assertNull(ReaderMode.appearance.testGetValue().single().extra)
+        assertNotNull(ReaderMode.appearance.testGetValue())
+        assertNull(ReaderMode.appearance.testGetValue()!!.single().extra)
     }
 
     @Test
@@ -270,12 +288,12 @@ class DefaultBrowserToolbarMenuControllerTest {
         val item = ToolbarMenu.Item.Back(false)
 
         val controller = createController(scope = this, store = browserStore)
-        assertFalse(Events.browserMenuAction.testHasValue())
+        assertNull(Events.browserMenuAction.testGetValue())
 
         controller.handleToolbarItemInteraction(item)
 
-        assertTrue(Events.browserMenuAction.testHasValue())
-        val snapshot = Events.browserMenuAction.testGetValue()
+        assertNotNull(Events.browserMenuAction.testGetValue())
+        val snapshot = Events.browserMenuAction.testGetValue()!!
         assertEquals(1, snapshot.size)
         assertEquals("back", snapshot.single().extra?.getValue("item"))
 
@@ -287,12 +305,12 @@ class DefaultBrowserToolbarMenuControllerTest {
         val item = ToolbarMenu.Item.Back(true)
 
         val controller = createController(scope = this, store = browserStore)
-        assertFalse(Events.browserMenuAction.testHasValue())
+        assertNull(Events.browserMenuAction.testGetValue())
 
         controller.handleToolbarItemInteraction(item)
 
-        assertTrue(Events.browserMenuAction.testHasValue())
-        val snapshot = Events.browserMenuAction.testGetValue()
+        assertNotNull(Events.browserMenuAction.testGetValue())
+        val snapshot = Events.browserMenuAction.testGetValue()!!
         assertEquals(1, snapshot.size)
         assertEquals("back", snapshot.single().extra?.getValue("item"))
         val directions = BrowserFragmentDirections.actionGlobalTabHistoryDialogFragment(null)
@@ -305,12 +323,12 @@ class DefaultBrowserToolbarMenuControllerTest {
         val item = ToolbarMenu.Item.Forward(false)
 
         val controller = createController(scope = this, store = browserStore)
-        assertFalse(Events.browserMenuAction.testHasValue())
+        assertNull(Events.browserMenuAction.testGetValue())
 
         controller.handleToolbarItemInteraction(item)
 
-        assertTrue(Events.browserMenuAction.testHasValue())
-        val snapshot = Events.browserMenuAction.testGetValue()
+        assertNotNull(Events.browserMenuAction.testGetValue())
+        val snapshot = Events.browserMenuAction.testGetValue()!!
         assertEquals(1, snapshot.size)
         assertEquals("forward", snapshot.single().extra?.getValue("item"))
 
@@ -322,12 +340,12 @@ class DefaultBrowserToolbarMenuControllerTest {
         val item = ToolbarMenu.Item.Forward(true)
 
         val controller = createController(scope = this, store = browserStore)
-        assertFalse(Events.browserMenuAction.testHasValue())
+        assertNull(Events.browserMenuAction.testGetValue())
 
         controller.handleToolbarItemInteraction(item)
 
-        assertTrue(Events.browserMenuAction.testHasValue())
-        val snapshot = Events.browserMenuAction.testGetValue()
+        assertNotNull(Events.browserMenuAction.testGetValue())
+        val snapshot = Events.browserMenuAction.testGetValue()!!
         assertEquals(1, snapshot.size)
         assertEquals("forward", snapshot.single().extra?.getValue("item"))
 
@@ -341,12 +359,12 @@ class DefaultBrowserToolbarMenuControllerTest {
         val item = ToolbarMenu.Item.Reload(false)
 
         val controller = createController(scope = this, store = browserStore)
-        assertFalse(Events.browserMenuAction.testHasValue())
+        assertNull(Events.browserMenuAction.testGetValue())
 
         controller.handleToolbarItemInteraction(item)
 
-        assertTrue(Events.browserMenuAction.testHasValue())
-        val snapshot = Events.browserMenuAction.testGetValue()
+        assertNotNull(Events.browserMenuAction.testGetValue())
+        val snapshot = Events.browserMenuAction.testGetValue()!!
         assertEquals(1, snapshot.size)
         assertEquals("reload", snapshot.single().extra?.getValue("item"))
 
@@ -358,19 +376,19 @@ class DefaultBrowserToolbarMenuControllerTest {
         val item = ToolbarMenu.Item.Reload(true)
 
         val controller = createController(scope = this, store = browserStore)
-        assertFalse(Events.browserMenuAction.testHasValue())
+        assertNull(Events.browserMenuAction.testGetValue())
 
         controller.handleToolbarItemInteraction(item)
 
-        assertTrue(Events.browserMenuAction.testHasValue())
-        val snapshot = Events.browserMenuAction.testGetValue()
+        assertNotNull(Events.browserMenuAction.testGetValue())
+        val snapshot = Events.browserMenuAction.testGetValue()!!
         assertEquals(1, snapshot.size)
         assertEquals("reload", snapshot.single().extra?.getValue("item"))
 
         verify {
             sessionUseCases.reload(
                 selectedTab.id,
-                EngineSession.LoadUrlFlags.select(EngineSession.LoadUrlFlags.BYPASS_CACHE)
+                EngineSession.LoadUrlFlags.select(EngineSession.LoadUrlFlags.BYPASS_CACHE),
             )
         }
     }
@@ -380,12 +398,12 @@ class DefaultBrowserToolbarMenuControllerTest {
         val item = ToolbarMenu.Item.Stop
 
         val controller = createController(scope = this, store = browserStore)
-        assertFalse(Events.browserMenuAction.testHasValue())
+        assertNull(Events.browserMenuAction.testGetValue())
 
         controller.handleToolbarItemInteraction(item)
 
-        assertTrue(Events.browserMenuAction.testHasValue())
-        val snapshot = Events.browserMenuAction.testGetValue()
+        assertNotNull(Events.browserMenuAction.testGetValue())
+        val snapshot = Events.browserMenuAction.testGetValue()!!
         assertEquals(1, snapshot.size)
         assertEquals("stop", snapshot.single().extra?.getValue("item"))
 
@@ -397,12 +415,12 @@ class DefaultBrowserToolbarMenuControllerTest {
         val item = ToolbarMenu.Item.Settings
 
         val controller = createController(scope = this, store = browserStore)
-        assertFalse(Events.browserMenuAction.testHasValue())
+        assertNull(Events.browserMenuAction.testGetValue())
 
         controller.handleToolbarItemInteraction(item)
 
-        assertTrue(Events.browserMenuAction.testHasValue())
-        val snapshot = Events.browserMenuAction.testGetValue()
+        assertNotNull(Events.browserMenuAction.testGetValue())
+        val snapshot = Events.browserMenuAction.testGetValue()!!
         assertEquals(1, snapshot.size)
         assertEquals("settings", snapshot.single().extra?.getValue("item"))
         val directions = BrowserFragmentDirections.actionBrowserFragmentToSettingsFragment()
@@ -415,12 +433,12 @@ class DefaultBrowserToolbarMenuControllerTest {
         val item = ToolbarMenu.Item.Bookmarks
 
         val controller = createController(scope = this, store = browserStore)
-        assertFalse(Events.browserMenuAction.testHasValue())
+        assertNull(Events.browserMenuAction.testGetValue())
 
         controller.handleToolbarItemInteraction(item)
 
-        assertTrue(Events.browserMenuAction.testHasValue())
-        val snapshot = Events.browserMenuAction.testGetValue()
+        assertNotNull(Events.browserMenuAction.testGetValue())
+        val snapshot = Events.browserMenuAction.testGetValue()!!
         assertEquals(1, snapshot.size)
         assertEquals("bookmarks", snapshot.single().extra?.getValue("item"))
         val directions = BrowserFragmentDirections.actionGlobalBookmarkFragment(BookmarkRoot.Mobile.id)
@@ -433,12 +451,12 @@ class DefaultBrowserToolbarMenuControllerTest {
         val item = ToolbarMenu.Item.History
 
         val controller = createController(scope = this, store = browserStore)
-        assertFalse(Events.browserMenuAction.testHasValue())
+        assertNull(Events.browserMenuAction.testGetValue())
 
         controller.handleToolbarItemInteraction(item)
 
-        assertTrue(Events.browserMenuAction.testHasValue())
-        val snapshot = Events.browserMenuAction.testGetValue()
+        assertNotNull(Events.browserMenuAction.testGetValue())
+        val snapshot = Events.browserMenuAction.testGetValue()!!
         assertEquals(1, snapshot.size)
         assertEquals("history", snapshot.single().extra?.getValue("item"))
         val directions = BrowserFragmentDirections.actionGlobalHistoryFragment()
@@ -455,19 +473,19 @@ class DefaultBrowserToolbarMenuControllerTest {
         every { sessionUseCases.requestDesktopSite } returns requestDesktopSiteUseCase
 
         val controller = createController(scope = this, store = browserStore)
-        assertFalse(Events.browserMenuAction.testHasValue())
+        assertNull(Events.browserMenuAction.testGetValue())
 
         controller.handleToolbarItemInteraction(item)
 
-        assertTrue(Events.browserMenuAction.testHasValue())
-        val snapshot = Events.browserMenuAction.testGetValue()
+        assertNotNull(Events.browserMenuAction.testGetValue())
+        val snapshot = Events.browserMenuAction.testGetValue()!!
         assertEquals(1, snapshot.size)
         assertEquals("desktop_view_on", snapshot.single().extra?.getValue("item"))
 
         verify {
             requestDesktopSiteUseCase.invoke(
                 true,
-                selectedTab.id
+                selectedTab.id,
             )
         }
     }
@@ -481,19 +499,19 @@ class DefaultBrowserToolbarMenuControllerTest {
         every { sessionUseCases.requestDesktopSite } returns requestDesktopSiteUseCase
 
         val controller = createController(scope = this, store = browserStore)
-        assertFalse(Events.browserMenuAction.testHasValue())
+        assertNull(Events.browserMenuAction.testGetValue())
 
         controller.handleToolbarItemInteraction(item)
 
-        assertTrue(Events.browserMenuAction.testHasValue())
-        val snapshot = Events.browserMenuAction.testGetValue()
+        assertNotNull(Events.browserMenuAction.testGetValue())
+        val snapshot = Events.browserMenuAction.testGetValue()!!
         assertEquals(1, snapshot.size)
         assertEquals("desktop_view_off", snapshot.single().extra?.getValue("item"))
 
         verify {
             requestDesktopSiteUseCase.invoke(
                 false,
-                selectedTab.id
+                selectedTab.id,
             )
         }
     }
@@ -509,12 +527,12 @@ class DefaultBrowserToolbarMenuControllerTest {
         } returns "Added to shortcuts!"
 
         val controller = createController(scope = this, store = browserStore)
-        assertFalse(Events.browserMenuAction.testHasValue())
+        assertNull(Events.browserMenuAction.testGetValue())
 
         controller.handleToolbarItemInteraction(item)
 
-        assertTrue(Events.browserMenuAction.testHasValue())
-        val snapshot = Events.browserMenuAction.testGetValue()
+        assertNotNull(Events.browserMenuAction.testGetValue())
+        val snapshot = Events.browserMenuAction.testGetValue()!!
         assertEquals(1, snapshot.size)
         assertEquals("add_to_top_sites", snapshot.single().extra?.getValue("item"))
 
@@ -537,12 +555,12 @@ class DefaultBrowserToolbarMenuControllerTest {
         } returns snackbarMessage
 
         val controller = createController(scope = this, store = browserStore)
-        assertFalse(Events.browserMenuAction.testHasValue())
+        assertNull(Events.browserMenuAction.testGetValue())
 
         controller.handleToolbarItemInteraction(item)
 
-        assertTrue(Events.browserMenuAction.testHasValue())
-        val snapshot = Events.browserMenuAction.testGetValue()
+        assertNotNull(Events.browserMenuAction.testGetValue())
+        val snapshot = Events.browserMenuAction.testGetValue()!!
         assertEquals(1, snapshot.size)
         assertEquals("remove_from_top_sites", snapshot.single().extra?.getValue("item"))
 
@@ -555,12 +573,12 @@ class DefaultBrowserToolbarMenuControllerTest {
         val item = ToolbarMenu.Item.AddonsManager
 
         val controller = createController(scope = this, store = browserStore)
-        assertFalse(Events.browserMenuAction.testHasValue())
+        assertNull(Events.browserMenuAction.testGetValue())
 
         controller.handleToolbarItemInteraction(item)
 
-        assertTrue(Events.browserMenuAction.testHasValue())
-        val snapshot = Events.browserMenuAction.testGetValue()
+        assertNotNull(Events.browserMenuAction.testGetValue())
+        val snapshot = Events.browserMenuAction.testGetValue()!!
         assertEquals(1, snapshot.size)
         assertEquals("addons_manager", snapshot.single().extra?.getValue("item"))
     }
@@ -570,12 +588,12 @@ class DefaultBrowserToolbarMenuControllerTest {
         val item = ToolbarMenu.Item.AddToHomeScreen
 
         val controller = createController(scope = this, store = browserStore)
-        assertFalse(Events.browserMenuAction.testHasValue())
+        assertNull(Events.browserMenuAction.testGetValue())
 
         controller.handleToolbarItemInteraction(item)
 
-        assertTrue(Events.browserMenuAction.testHasValue())
-        val snapshot = Events.browserMenuAction.testGetValue()
+        assertNotNull(Events.browserMenuAction.testGetValue())
+        val snapshot = Events.browserMenuAction.testGetValue()!!
         assertEquals(1, snapshot.size)
         assertEquals("add_to_homescreen", snapshot.single().extra?.getValue("item"))
     }
@@ -588,16 +606,16 @@ class DefaultBrowserToolbarMenuControllerTest {
         val regularTab = createTab(
             url = url,
             readerState = ReaderState(active = false, activeUrl = "https://1234.org"),
-            title = title
+            title = title,
         )
         browserStore = BrowserStore(BrowserState(tabs = listOf(regularTab), selectedTabId = regularTab.id))
         val controller = createController(scope = this, store = browserStore)
-        assertFalse(Events.browserMenuAction.testHasValue())
+        assertNull(Events.browserMenuAction.testGetValue())
 
         controller.handleToolbarItemInteraction(item)
 
-        assertTrue(Events.browserMenuAction.testHasValue())
-        val snapshot = Events.browserMenuAction.testGetValue()
+        assertNotNull(Events.browserMenuAction.testGetValue())
+        val snapshot = Events.browserMenuAction.testGetValue()!!
         assertEquals(1, snapshot.size)
         assertEquals("share", snapshot.single().extra?.getValue("item"))
 
@@ -605,10 +623,11 @@ class DefaultBrowserToolbarMenuControllerTest {
             navController.navigate(
                 directionsEq(
                     NavGraphDirections.actionGlobalShareFragment(
+                        sessionId = browserStore.state.selectedTabId,
                         data = arrayOf(ShareData(url = "https://mozilla.org", title = "Mozilla")),
-                        showPage = true
-                    )
-                )
+                        showPage = true,
+                    ),
+                ),
             )
         }
     }
@@ -621,16 +640,16 @@ class DefaultBrowserToolbarMenuControllerTest {
         val readerTab = createTab(
             url = readerUrl,
             readerState = ReaderState(active = true, activeUrl = "https://mozilla.org"),
-            title = title
+            title = title,
         )
         browserStore = BrowserStore(BrowserState(tabs = listOf(readerTab), selectedTabId = readerTab.id))
         val controller = createController(scope = this, store = browserStore)
-        assertFalse(Events.browserMenuAction.testHasValue())
+        assertNull(Events.browserMenuAction.testGetValue())
 
         controller.handleToolbarItemInteraction(item)
 
-        assertTrue(Events.browserMenuAction.testHasValue())
-        val snapshot = Events.browserMenuAction.testGetValue()
+        assertNotNull(Events.browserMenuAction.testGetValue())
+        val snapshot = Events.browserMenuAction.testGetValue()!!
         assertEquals(1, snapshot.size)
         assertEquals("share", snapshot.single().extra?.getValue("item"))
 
@@ -638,10 +657,11 @@ class DefaultBrowserToolbarMenuControllerTest {
             navController.navigate(
                 directionsEq(
                     NavGraphDirections.actionGlobalShareFragment(
+                        sessionId = browserStore.state.selectedTabId,
                         data = arrayOf(ShareData(url = "https://mozilla.org", title = "Mozilla")),
-                        showPage = true
-                    )
-                )
+                        showPage = true,
+                    ),
+                ),
             )
         }
     }
@@ -652,10 +672,11 @@ class DefaultBrowserToolbarMenuControllerTest {
 
         var launcherInvoked = false
         val controller = createController(
-            scope = this, store = browserStore,
+            scope = this,
+            store = browserStore,
             findInPageLauncher = {
                 launcherInvoked = true
-            }
+            },
         )
         controller.handleToolbarItemInteraction(item)
 
@@ -669,30 +690,30 @@ class DefaultBrowserToolbarMenuControllerTest {
         every { tabCollectionStorage.cachedTabCollections } returns cachedTabCollections
 
         val controller = createController(scope = this, store = browserStore)
-        assertFalse(Events.browserMenuAction.testHasValue())
+        assertNull(Events.browserMenuAction.testGetValue())
 
         controller.handleToolbarItemInteraction(item)
 
-        assertTrue(Events.browserMenuAction.testHasValue())
-        val snapshot = Events.browserMenuAction.testGetValue()
+        assertNotNull(Events.browserMenuAction.testGetValue())
+        val snapshot = Events.browserMenuAction.testGetValue()!!
         assertEquals(1, snapshot.size)
         assertEquals("save_to_collection", snapshot.single().extra?.getValue("item"))
 
-        assertTrue(Collections.saveButton.testHasValue())
-        val recordedEvents = Collections.saveButton.testGetValue()
+        assertNotNull(Collections.saveButton.testGetValue())
+        val recordedEvents = Collections.saveButton.testGetValue()!!
         assertEquals(1, recordedEvents.size)
         val eventExtra = recordedEvents.single().extra
         assertNotNull(eventExtra)
         assertTrue(eventExtra!!.containsKey("from_screen"))
         assertEquals(
             DefaultBrowserToolbarMenuController.TELEMETRY_BROWSER_IDENTIFIER,
-            eventExtra["from_screen"]
+            eventExtra["from_screen"],
         )
 
         val directions = BrowserFragmentDirections.actionGlobalCollectionCreationFragment(
             saveCollectionStep = SaveCollectionStep.SelectCollection,
             tabIds = arrayOf(selectedTab.id),
-            selectedTabIds = arrayOf(selectedTab.id)
+            selectedTabIds = arrayOf(selectedTab.id),
         )
         verify { navController.navigate(directionsEq(directions), null) }
     }
@@ -704,29 +725,29 @@ class DefaultBrowserToolbarMenuControllerTest {
         every { tabCollectionStorage.cachedTabCollections } returns cachedTabCollectionsEmpty
 
         val controller = createController(scope = this, store = browserStore)
-        assertFalse(Events.browserMenuAction.testHasValue())
+        assertNull(Events.browserMenuAction.testGetValue())
 
         controller.handleToolbarItemInteraction(item)
 
-        assertTrue(Events.browserMenuAction.testHasValue())
-        val snapshot = Events.browserMenuAction.testGetValue()
+        assertNotNull(Events.browserMenuAction.testGetValue())
+        val snapshot = Events.browserMenuAction.testGetValue()!!
         assertEquals(1, snapshot.size)
         assertEquals("save_to_collection", snapshot.single().extra?.getValue("item"))
 
-        assertTrue(Collections.saveButton.testHasValue())
-        val recordedEvents = Collections.saveButton.testGetValue()
+        assertNotNull(Collections.saveButton.testGetValue())
+        val recordedEvents = Collections.saveButton.testGetValue()!!
         assertEquals(1, recordedEvents.size)
         val eventExtra = recordedEvents.single().extra
         assertNotNull(eventExtra)
         assertTrue(eventExtra!!.containsKey("from_screen"))
         assertEquals(
             DefaultBrowserToolbarMenuController.TELEMETRY_BROWSER_IDENTIFIER,
-            eventExtra["from_screen"]
+            eventExtra["from_screen"],
         )
         val directions = BrowserFragmentDirections.actionGlobalCollectionCreationFragment(
             saveCollectionStep = SaveCollectionStep.NameCollection,
             tabIds = arrayOf(selectedTab.id),
-            selectedTabIds = arrayOf(selectedTab.id)
+            selectedTabIds = arrayOf(selectedTab.id),
         )
         verify { navController.navigate(directionsEq(directions), null) }
     }
@@ -743,9 +764,9 @@ class DefaultBrowserToolbarMenuControllerTest {
             navController.navigate(
                 directionsEq(
                     NavGraphDirections.actionGlobalHome(
-                        focusOnAddressBar = true
-                    )
-                )
+                        focusOnAddressBar = true,
+                    ),
+                ),
             )
         }
     }
@@ -790,15 +811,16 @@ class DefaultBrowserToolbarMenuControllerTest {
         val store: BrowserStore = mockk()
 
         val controller = createController(
-            scope = this, store = store,
-            bookmarkTapped = { _, _ -> }
+            scope = this,
+            store = store,
+            bookmarkTapped = { _, _ -> },
         )
 
-        assertFalse(ExperimentsDefaultBrowser.toolbarMenuClicked.testHasValue())
+        assertNull(ExperimentsDefaultBrowser.toolbarMenuClicked.testGetValue())
 
         controller.handleToolbarItemInteraction(item)
 
-        assertTrue(ExperimentsDefaultBrowser.toolbarMenuClicked.testHasValue())
+        assertNotNull(ExperimentsDefaultBrowser.toolbarMenuClicked.testGetValue())
     }
 
     @Suppress("LongParameterList")
@@ -808,7 +830,7 @@ class DefaultBrowserToolbarMenuControllerTest {
         activity: HomeActivity = this.activity,
         customTabSessionId: String? = null,
         findInPageLauncher: () -> Unit = { },
-        bookmarkTapped: (String, String) -> Unit = { _, _ -> }
+        bookmarkTapped: (String, String) -> Unit = { _, _ -> },
     ) = DefaultBrowserToolbarMenuController(
         store = store,
         activity = activity,
@@ -826,7 +848,7 @@ class DefaultBrowserToolbarMenuControllerTest {
         sessionFeature = sessionFeatureWrapper,
         topSitesStorage = topSitesStorage,
         pinnedSiteStorage = pinnedSiteStorage,
-        browserStore = browserStore
+        browserStore = browserStore,
     ).apply {
         ioScope = scope
     }

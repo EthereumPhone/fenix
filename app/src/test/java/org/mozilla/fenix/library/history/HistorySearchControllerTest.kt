@@ -11,7 +11,7 @@ import kotlinx.coroutines.test.runTest
 import mozilla.components.concept.engine.EngineSession
 import mozilla.components.support.test.robolectric.testContext
 import mozilla.telemetry.glean.testing.GleanTestRule
-import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -29,8 +29,11 @@ class HistorySearchControllerTest {
     @get:Rule
     val gleanTestRule = GleanTestRule(testContext)
 
-    @MockK(relaxed = true) private lateinit var activity: HomeActivity
-    @MockK(relaxed = true) private lateinit var store: HistorySearchFragmentStore
+    @MockK(relaxed = true)
+    private lateinit var activity: HomeActivity
+
+    @MockK(relaxed = true)
+    private lateinit var store: HistorySearchFragmentStore
 
     @Before
     fun setUp() {
@@ -43,7 +46,7 @@ class HistorySearchControllerTest {
         createController(
             clearToolbarFocus = {
                 clearToolbarFocusInvoked = true
-            }
+            },
         ).handleEditingCancelled()
 
         assertTrue(clearToolbarFocusInvoked)
@@ -71,19 +74,19 @@ class HistorySearchControllerTest {
     fun `WHEN url is tapped THEN openToBrowserAndLoad is called`() {
         val url = "https://www.google.com/"
         val flags = EngineSession.LoadUrlFlags.none()
-        assertFalse(History.searchResultTapped.testHasValue())
+        assertNull(History.searchResultTapped.testGetValue())
 
         createController().handleUrlTapped(url, flags)
         createController().handleUrlTapped(url)
 
-        assertTrue(History.searchResultTapped.testHasValue())
-        assertNull(History.searchResultTapped.testGetValue().last().extra)
+        assertNotNull(History.searchResultTapped.testGetValue())
+        assertNull(History.searchResultTapped.testGetValue()!!.last().extra)
         verify {
             activity.openToBrowserAndLoad(
                 searchTermOrURL = url,
                 newTab = true,
                 from = BrowserDirection.FromHistorySearchDialog,
-                flags = flags
+                flags = flags,
             )
         }
     }

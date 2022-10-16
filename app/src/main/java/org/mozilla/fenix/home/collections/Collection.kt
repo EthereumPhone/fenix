@@ -35,6 +35,7 @@ import mozilla.components.browser.state.state.recover.RecoverableTab
 import mozilla.components.concept.engine.Engine
 import mozilla.components.feature.tab.collections.Tab
 import mozilla.components.feature.tab.collections.TabCollection
+import org.mozilla.fenix.R
 import org.mozilla.fenix.R.drawable
 import org.mozilla.fenix.R.string
 import org.mozilla.fenix.compose.list.ExpandableListHeader
@@ -64,7 +65,7 @@ private val expandedCollectionShape = RoundedCornerShape(topStart = 8.dp, topEnd
  * @param onCollectionMenuOpened Invoked when the user clicks to open a menu for the collection.
  */
 @Composable
-@Suppress("LongParameterList")
+@Suppress("LongParameterList", "LongMethod")
 fun Collection(
     collection: TabCollection,
     expanded: Boolean,
@@ -79,11 +80,18 @@ fun Collection(
     Card(
         modifier = Modifier
             .semantics(mergeDescendants = true) {}
-            .clickable { onToggleCollectionExpanded(collection, !isExpanded) }
+            .clickable(
+                onClickLabel = if (isExpanded) {
+                    stringResource(R.string.a11y_action_label_collapse)
+                } else {
+                    stringResource(R.string.a11y_action_label_expand)
+                },
+                onClick = { onToggleCollectionExpanded(collection, !isExpanded) },
+            )
             .height(48.dp),
         shape = if (isExpanded) expandedCollectionShape else collapsedCollectionShape,
         backgroundColor = FirefoxTheme.colors.layer2,
-        elevation = 5.dp, // This needs to match the elevation of TabInCollection for matching shadows.
+        elevation = 5.dp,
     ) {
         Row(
             modifier = Modifier
@@ -95,7 +103,7 @@ fun Collection(
                 contentDescription = null,
                 modifier = Modifier.padding(
                     start = 16.dp,
-                    end = 8.dp // (24.dp - 16.dp) hardcoded in ExpandableListHeader
+                    end = 8.dp, // (24.dp - 16.dp) hardcoded in ExpandableListHeader
                 ),
                 tint = Paint().apply {
                     color = Color(collection.getIconColor(LocalContext.current))
@@ -105,12 +113,13 @@ fun Collection(
 
             ExpandableListHeader(
                 headerText = collection.title,
+                headerTextStyle = FirefoxTheme.typography.headline7,
                 expanded = isExpanded,
             ) {
                 if (isExpanded) {
                     Row {
                         IconButton(
-                            onClick = { onCollectionShareTabsClicked(collection) }
+                            onClick = { onCollectionShareTabsClicked(collection) },
                         ) {
                             Icon(
                                 painter = painterResource(drawable.ic_share),
@@ -123,12 +132,12 @@ fun Collection(
                             onClick = {
                                 isMenuExpanded = !isMenuExpanded
                                 onCollectionMenuOpened()
-                            }
+                            },
                         ) {
                             Icon(
                                 painter = painterResource(drawable.ic_menu),
                                 contentDescription = stringResource(
-                                    string.collection_menu_button_content_description
+                                    string.collection_menu_button_content_description,
                                 ),
                                 tint = FirefoxTheme.colors.iconPrimary,
                             )

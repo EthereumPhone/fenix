@@ -5,116 +5,196 @@
 package org.mozilla.fenix.home.recentsyncedtabs
 
 import android.content.Context
-import androidx.lifecycle.LifecycleOwner
-import mozilla.components.browser.storage.sync.SyncedDeviceTabs
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import mozilla.components.browser.storage.sync.Tab
+import mozilla.components.concept.storage.HistoryStorage
+import mozilla.components.concept.sync.Device
 import mozilla.components.concept.sync.DeviceType
-import mozilla.components.feature.syncedtabs.SyncedTabsFeature
 import mozilla.components.feature.syncedtabs.storage.SyncedTabsStorage
-import mozilla.components.feature.syncedtabs.view.SyncedTabsView
+import mozilla.components.lib.state.ext.flow
+import mozilla.components.service.fxa.SyncEngine
 import mozilla.components.service.fxa.manager.FxaAccountManager
+import mozilla.components.service.fxa.manager.SyncEnginesStorage
+import mozilla.components.service.fxa.manager.ext.withConstellation
+import mozilla.components.service.fxa.store.SyncStatus
+import mozilla.components.service.fxa.store.SyncStore
+import mozilla.components.service.fxa.sync.SyncReason
 import mozilla.components.support.base.feature.LifecycleAwareFeature
-import org.mozilla.fenix.components.AppStore
-import org.mozilla.fenix.components.appstate.AppAction
+import mozilla.components.support.ktx.kotlin.tryGetHostFromUrl
+import mozilla.components.support.ktx.kotlinx.coroutines.flow.ifChanged
 import mozilla.telemetry.glean.GleanTimerId
 import org.mozilla.fenix.GleanMetrics.RecentSyncedTabs
+import org.mozilla.fenix.components.AppStore
+import org.mozilla.fenix.components.appstate.AppAction
+import java.util.concurrent.TimeUnit
 
 /**
  * Delegate to handle layout updates and dispatch actions related to the recent synced tab.
  *
- * @property store Store to dispatch actions to when synced tabs are updated or errors encountered.
- * @param accountManager Account manager used to retrieve synced tab state.
- * @param context [Context] used for retrieving the sync engine storage state.
- * @param storage Storage layer for synced tabs.
- * @param lifecycleOwner View lifecycle owner to determine start/stop state for feature.
+ * @property appStore Store to dispatch actions to when synced tabs are updated or errors encountered.
+ * @property syncStore Store to observe for changes to Sync and account status.
+ * @property storage Storage layer for synced tabs.
+ * @property accountManager Account manager to initiate Syncs and refresh devices.
+ * @property historyStorage Storage for searching history for preview image URLs matching synced tab.
+ * @property coroutineScope The scope to collect Sync state Flow updates in.
  */
 @Suppress("LongParameterList")
 class RecentSyncedTabFeature(
-    private val store: AppStore,
-    accountManager: FxaAccountManager,
-    context: Context,
-    storage: SyncedTabsStorage,
-    lifecycleOwner: LifecycleOwner,
-) : SyncedTabsView, LifecycleAwareFeature {
-    private val syncedTabsFeature by lazy {
-        SyncedTabsFeature(
-            view = this,
-            context = context,
-            storage = storage,
-            accountManager = accountManager,
-            lifecycleOwner = lifecycleOwner,
-            onTabClicked = {}
-        )
-    }
-
-    override var listener: SyncedTabsView.Listener? = null
+    private val context: Context,
+    private val appStore: AppStore,
+    private val syncStore: SyncStore,
+    private val storage: SyncedTabsStorage,
+    private val accountManager: FxaAccountManager,
+    private val historyStorage: HistoryStorage,
+    private val coroutineScope: CoroutineScope,
+) : LifecycleAwareFeature {
 
     private var syncStartId: GleanTimerId? = null
-    private var lastSyncedTab: RecentSyncedTab? = null
-
-    override fun startLoading() {
-        syncStartId?.let { RecentSyncedTabs.recentSyncedTabTimeToLoad.cancel(it) }
-        syncStartId = RecentSyncedTabs.recentSyncedTabTimeToLoad.start()
-        if (store.state.recentSyncedTabState == RecentSyncedTabState.None) {
-            store.dispatch(AppAction.RecentSyncedTabStateChange(RecentSyncedTabState.Loading))
-        }
-    }
-
-    override fun displaySyncedTabs(syncedTabs: List<SyncedDeviceTabs>) {
-        val syncedTab = syncedTabs
-            .filterNot { it.device.isCurrentDevice || it.tabs.isEmpty() }
-            .maxByOrNull { it.device.lastAccessTime ?: 0 }
-            ?.let {
-                val tab = it.tabs.firstOrNull()?.active() ?: return
-                RecentSyncedTab(
-                    deviceDisplayName = it.device.displayName,
-                    deviceType = it.device.deviceType,
-                    title = tab.title,
-                    url = tab.url,
-                    iconUrl = tab.iconUrl
-                )
-            } ?: return
-        recordMetrics(syncedTab, lastSyncedTab, syncStartId)
-        store.dispatch(
-            AppAction.RecentSyncedTabStateChange(RecentSyncedTabState.Success(syncedTab))
-        )
-        lastSyncedTab = syncedTab
-    }
-
-    /**
-     * Note: This is called in success cases as well, but the state should only change if there
-     * isn't a tab displayed. The store's state isn't updated in time to rely on it for this
-     * condition, so local state is used instead.
-     */
-    override fun stopLoading() {
-        if (lastSyncedTab == null) {
-            store.dispatch(AppAction.RecentSyncedTabStateChange(RecentSyncedTabState.None))
-        }
-    }
-
-    override fun onError(error: SyncedTabsView.ErrorType) {
-        if (store.state.recentSyncedTabState == RecentSyncedTabState.Loading) {
-            store.dispatch(AppAction.RecentSyncedTabStateChange(RecentSyncedTabState.None))
-        }
-    }
+    private var lastSyncedTabs: List<RecentSyncedTab>? = null
 
     override fun start() {
-        syncedTabsFeature.start()
+        collectAccountUpdates()
+        collectStatusUpdates()
     }
 
-    override fun stop() {
-        syncedTabsFeature.stop()
+    override fun stop() = Unit
+
+    private fun collectAccountUpdates() {
+        syncStore.flow()
+            .ifChanged { state ->
+                state.account != null
+            }.onEach { state ->
+                if (state.account != null) {
+                    dispatchLoading()
+                    // Sync tabs storage will fail to retrieve tabs aren't refreshed, as that action
+                    // is what populates the device constellation state
+                    accountManager.withConstellation { refreshDevices() }
+                    accountManager.syncNow(
+                        reason = SyncReason.User,
+                        customEngineSubset = listOf(SyncEngine.Tabs),
+                    )
+                }
+            }.launchIn(coroutineScope)
+    }
+
+    private fun collectStatusUpdates() {
+        syncStore.flow()
+            .ifChanged { state ->
+                state.status
+            }.onEach { state ->
+                when (state.status) {
+                    SyncStatus.Idle -> dispatchSyncedTabs()
+                    SyncStatus.Error -> onError()
+                    SyncStatus.LoggedOut -> appStore.dispatch(
+                        AppAction.RecentSyncedTabStateChange(RecentSyncedTabState.None),
+                    )
+                    else -> Unit
+                }
+            }.launchIn(coroutineScope)
+    }
+
+    private fun dispatchLoading() {
+        syncStartId?.let { RecentSyncedTabs.recentSyncedTabTimeToLoad.cancel(it) }
+        syncStartId = RecentSyncedTabs.recentSyncedTabTimeToLoad.start()
+        if (appStore.state.recentSyncedTabState == RecentSyncedTabState.None) {
+            appStore.dispatch(AppAction.RecentSyncedTabStateChange(RecentSyncedTabState.Loading))
+        }
+    }
+
+    private suspend fun dispatchSyncedTabs() {
+        if (!isSyncedTabsEngineEnabled()) {
+            appStore.dispatch(
+                AppAction.RecentSyncedTabStateChange(RecentSyncedTabState.None),
+            )
+
+            return
+        }
+
+        val syncedTabs = storage.getSyncedDeviceTabs()
+            .filterNot { it.device.isCurrentDevice || it.tabs.isEmpty() }
+            .flatMap {
+                it.tabs.map { tab ->
+                    SyncedDeviceTab(it.device, tab)
+                }
+            }
+            .ifEmpty { return }
+            // We want to get the last device used based on the most recent accessed tab,
+            // as described here: https://github.com/mozilla-mobile/fenix/issues/26398
+            .sortedByDescending { deviceTab -> deviceTab.tab.lastUsed }
+            .take(MAX_RECENT_SYNCED_TABS)
+            .map { deviceTab ->
+                val activeTabEntry = deviceTab.tab.active()
+
+                val currentTime = System.currentTimeMillis()
+                val maxAgeInMs = TimeUnit.DAYS.toMillis(DAYS_HISTORY_FOR_PREVIEW_IMAGE)
+                val history = historyStorage.getDetailedVisits(
+                    start = currentTime - maxAgeInMs,
+                    end = currentTime,
+                )
+
+                // Searching history entries for any that share a top level domain and have a
+                // preview image URL available casts a wider net for finding a suitable image.
+                val previewImageUrl = history.find { entry ->
+                    entry.url.contains(activeTabEntry.url.tryGetHostFromUrl()) && entry.previewImageUrl != null
+                }?.previewImageUrl
+
+                RecentSyncedTab(
+                    deviceDisplayName = deviceTab.device.displayName,
+                    deviceType = deviceTab.device.deviceType,
+                    title = activeTabEntry.title,
+                    url = activeTabEntry.url,
+                    previewImageUrl = previewImageUrl,
+                )
+            }
+        if (syncedTabs.isEmpty()) {
+            appStore.dispatch(
+                AppAction.RecentSyncedTabStateChange(RecentSyncedTabState.None),
+            )
+        } else {
+            recordMetrics(syncedTabs.first(), lastSyncedTabs?.first(), syncStartId)
+            appStore.dispatch(
+                AppAction.RecentSyncedTabStateChange(RecentSyncedTabState.Success(syncedTabs)),
+            )
+            lastSyncedTabs = syncedTabs
+        }
+    }
+
+    private fun onError() {
+        if (appStore.state.recentSyncedTabState == RecentSyncedTabState.Loading) {
+            appStore.dispatch(AppAction.RecentSyncedTabStateChange(RecentSyncedTabState.None))
+        }
     }
 
     private fun recordMetrics(
         tab: RecentSyncedTab,
         lastSyncedTab: RecentSyncedTab?,
-        syncStartId: GleanTimerId?
+        syncStartId: GleanTimerId?,
     ) {
-        RecentSyncedTabs.recentSyncedTabShown[tab.deviceType.name].add()
-        RecentSyncedTabs.recentSyncedTabTimeToLoad.stopAndAccumulate(syncStartId)
+        RecentSyncedTabs.recentSyncedTabShown[tab.deviceType.name.lowercase()].add()
+        syncStartId?.let { RecentSyncedTabs.recentSyncedTabTimeToLoad.stopAndAccumulate(it) }
         if (tab == lastSyncedTab) {
             RecentSyncedTabs.latestSyncedTabIsStale.add()
         }
+    }
+
+    private fun isSyncedTabsEngineEnabled(): Boolean {
+        return SyncEnginesStorage(context).getStatus()[SyncEngine.Tabs] ?: true
+    }
+
+    companion object {
+        /**
+         * The number of days to search history for a preview image URL to display for a synced
+         * tab.
+         */
+
+        const val DAYS_HISTORY_FOR_PREVIEW_IMAGE = 3L
+
+        /**
+         * Number of recent synced tabs we want to keep in the success state.
+         */
+        const val MAX_RECENT_SYNCED_TABS = 8
     }
 }
 
@@ -133,9 +213,9 @@ sealed class RecentSyncedTabState {
     object Loading : RecentSyncedTabState()
 
     /**
-     * A user is authenticated and the most recent synced tab has been found.
+     * A user is authenticated and most recent synced tabs have been found.
      */
-    data class Success(val tab: RecentSyncedTab) : RecentSyncedTabState()
+    data class Success(val tabs: List<RecentSyncedTab>) : RecentSyncedTabState()
 }
 
 /**
@@ -144,12 +224,23 @@ sealed class RecentSyncedTabState {
  * @param deviceDisplayName The device the tab was viewed on.
  * @param title The title of the tab.
  * @param url The url of the tab.
- * @param iconUrl The url used to retrieve the icon of the tab.
+ * @param previewImageUrl The url used to retrieve the preview image of the tab.
  */
 data class RecentSyncedTab(
     val deviceDisplayName: String,
     val deviceType: DeviceType,
     val title: String,
     val url: String,
-    val iconUrl: String?,
+    val previewImageUrl: String?,
+)
+
+/**
+ * Class representing a tab from a synced device.
+ *
+ * @param device The synced [Device].
+ * @param tab The tab from the synced device.
+ */
+private data class SyncedDeviceTab(
+    val device: Device,
+    val tab: Tab,
 )

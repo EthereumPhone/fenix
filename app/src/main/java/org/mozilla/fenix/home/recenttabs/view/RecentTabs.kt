@@ -6,11 +6,11 @@
 
 package org.mozilla.fenix.home.recenttabs.view
 
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -29,7 +29,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
-import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -44,21 +43,20 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mozilla.components.browser.icons.compose.Loader
 import mozilla.components.browser.icons.compose.Placeholder
 import mozilla.components.browser.icons.compose.WithIcon
+import mozilla.components.browser.state.state.ContentState
+import mozilla.components.browser.state.state.TabSessionState
 import mozilla.components.ui.colors.PhotonColors
-import org.mozilla.fenix.R
 import org.mozilla.fenix.components.components
 import org.mozilla.fenix.compose.Image
-import org.mozilla.fenix.compose.PrimaryText
-import org.mozilla.fenix.compose.SecondaryText
 import org.mozilla.fenix.compose.ThumbnailCard
+import org.mozilla.fenix.compose.inComposePreview
 import org.mozilla.fenix.home.recenttabs.RecentTab
 import org.mozilla.fenix.theme.FirefoxTheme
 
@@ -68,18 +66,17 @@ import org.mozilla.fenix.theme.FirefoxTheme
  * @param recentTabs List of [RecentTab] to display.
  * @param menuItems List of [RecentTabMenuItem] shown long clicking a [RecentTab].
  * @param onRecentTabClick Invoked when the user clicks on a recent tab.
- * @param onRecentSearchGroupClick Invoked when the user clicks on a recent search group.
  */
 @Composable
 fun RecentTabs(
     recentTabs: List<RecentTab>,
     menuItems: List<RecentTabMenuItem>,
     onRecentTabClick: (String) -> Unit = {},
-    onRecentSearchGroupClick: (String) -> Unit = {},
+    onRecentTabLongClick: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         recentTabs.forEach { tab ->
             when (tab) {
@@ -87,18 +84,9 @@ fun RecentTabs(
                     RecentTabItem(
                         tab = tab,
                         menuItems = menuItems,
-                        onRecentTabClick = onRecentTabClick
+                        onRecentTabClick = onRecentTabClick,
+                        onRecentTabLongClick = onRecentTabLongClick,
                     )
-                }
-                is RecentTab.SearchGroup -> {
-                    if (components.settings.searchTermTabGroupsAreEnabled) {
-                        RecentSearchGroupItem(
-                            searchTerm = tab.searchTerm,
-                            tabId = tab.tabId,
-                            count = tab.count,
-                            onSearchGroupClick = onRecentSearchGroupClick
-                        )
-                    }
                 }
             }
         }
@@ -116,7 +104,8 @@ fun RecentTabs(
 private fun RecentTabItem(
     tab: RecentTab.Tab,
     menuItems: List<RecentTabMenuItem>,
-    onRecentTabClick: (String) -> Unit = {}
+    onRecentTabClick: (String) -> Unit = {},
+    onRecentTabLongClick: () -> Unit = {},
 ) {
     var isMenuExpanded by remember { mutableStateOf(false) }
 
@@ -127,30 +116,35 @@ private fun RecentTabItem(
             .combinedClickable(
                 enabled = true,
                 onClick = { onRecentTabClick(tab.state.id) },
-                onLongClick = { isMenuExpanded = true }
+                onLongClick = {
+                    onRecentTabLongClick()
+                    isMenuExpanded = true
+                },
             ),
         shape = RoundedCornerShape(8.dp),
         backgroundColor = FirefoxTheme.colors.layer2,
-        elevation = 6.dp
+        elevation = 6.dp,
     ) {
         Row(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(16.dp),
         ) {
             RecentTabImage(
                 tab = tab,
                 modifier = Modifier
                     .size(108.dp, 80.dp)
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Crop,
             )
 
             Spacer(modifier = Modifier.width(16.dp))
 
             Column(
                 modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.SpaceBetween
+                verticalArrangement = Arrangement.SpaceBetween,
             ) {
-                PrimaryText(
+                Text(
                     text = tab.state.content.title.ifEmpty { tab.state.content.url },
+                    color = FirefoxTheme.colors.textPrimary,
                     fontSize = 14.sp,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
@@ -159,14 +153,18 @@ private fun RecentTabItem(
                 Row {
                     RecentTabIcon(
                         url = tab.state.content.url,
-                        modifier = Modifier.size(18.dp).clip(RoundedCornerShape(2.dp)),
-                        icon = tab.state.content.icon
+                        modifier = Modifier
+                            .size(18.dp)
+                            .clip(RoundedCornerShape(2.dp)),
+                        contentScale = ContentScale.Crop,
+                        icon = tab.state.content.icon,
                     )
 
                     Spacer(modifier = Modifier.width(8.dp))
 
-                    SecondaryText(
+                    Text(
                         text = tab.state.content.url,
+                        color = FirefoxTheme.colors.textSecondary,
                         fontSize = 12.sp,
                         overflow = TextOverflow.Ellipsis,
                         maxLines = 1,
@@ -178,81 +176,8 @@ private fun RecentTabItem(
                 showMenu = isMenuExpanded,
                 menuItems = menuItems,
                 tab = tab,
-                onDismissRequest = { isMenuExpanded = false }
+                onDismissRequest = { isMenuExpanded = false },
             )
-        }
-    }
-}
-
-/**
- * A recent search group item.
- *
- * @param searchTerm The search term for the group.
- * @param tabId The id of the last accessed tab in the group.
- * @param count Count of how many tabs belongs to the group.
- * @param onSearchGroupClick Invoked when the user clicks on a group.
- */
-@Composable
-private fun RecentSearchGroupItem(
-    searchTerm: String,
-    tabId: String,
-    count: Int,
-    onSearchGroupClick: (String) -> Unit = {}
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(112.dp)
-            .clickable { onSearchGroupClick(tabId) },
-        shape = RoundedCornerShape(8.dp),
-        backgroundColor = FirefoxTheme.colors.layer2,
-        elevation = 6.dp
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_search_group_thumbnail),
-                contentDescription = null,
-                modifier = Modifier.size(108.dp, 80.dp),
-                contentScale = ContentScale.FillWidth,
-                alignment = Alignment.Center
-            )
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                PrimaryText(
-                    text = stringResource(R.string.recent_tabs_search_term, searchTerm),
-                    fontSize = 14.sp,
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 2,
-                )
-
-                Row {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_all_tabs),
-                        modifier = Modifier.size(18.dp),
-                        contentDescription = null,
-                        tint = when (isSystemInDarkTheme()) {
-                            true -> FirefoxTheme.colors.textPrimary
-                            false -> FirefoxTheme.colors.textSecondary
-                        }
-                    )
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    SecondaryText(
-                        text = stringResource(R.string.recent_tabs_search_term_count_2, count),
-                        fontSize = 12.sp,
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 1,
-                    )
-                }
-            }
         }
     }
 }
@@ -270,7 +195,7 @@ fun RecentTabImage(
     tab: RecentTab.Tab,
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.FillWidth,
-    alignment: Alignment = Alignment.TopCenter
+    alignment: Alignment = Alignment.TopCenter,
 ) {
     val previewImageUrl = tab.state.content.previewImageUrl
     val thumbnail = tab.state.content.thumbnail
@@ -281,7 +206,7 @@ fun RecentTabImage(
                 url = previewImageUrl,
                 modifier = modifier,
                 targetSize = 108.dp,
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
             )
         }
         thumbnail != null -> {
@@ -290,13 +215,14 @@ fun RecentTabImage(
                 contentDescription = null,
                 modifier = modifier,
                 contentScale = contentScale,
-                alignment = alignment
+                alignment = alignment,
             )
         }
         else -> ThumbnailCard(
             url = tab.state.content.url,
             key = tab.state.id,
-            modifier = modifier
+            modifier = modifier,
+            contentScale = contentScale,
         )
     }
 }
@@ -326,7 +252,7 @@ private fun RecentTabMenu(
         expanded = showMenu,
         onDismissRequest = { onDismissRequest() },
         modifier = Modifier
-            .background(color = FirefoxTheme.colors.layer2)
+            .background(color = FirefoxTheme.colors.layer2),
     ) {
         for (item in menuItems) {
             DropdownMenuItem(
@@ -341,7 +267,7 @@ private fun RecentTabMenu(
                     maxLines = 1,
                     modifier = Modifier
                         .fillMaxHeight()
-                        .align(Alignment.CenterVertically)
+                        .align(Alignment.CenterVertically),
                 )
             }
         }
@@ -364,7 +290,7 @@ private fun RecentTabIcon(
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Fit,
     alignment: Alignment = Alignment.Center,
-    icon: Bitmap? = null
+    icon: Bitmap? = null,
 ) {
     when {
         icon != null -> {
@@ -373,20 +299,13 @@ private fun RecentTabIcon(
                 contentDescription = null,
                 modifier = modifier,
                 contentScale = contentScale,
-                alignment = alignment
+                alignment = alignment,
             )
         }
-        else -> {
+        !inComposePreview -> {
             components.core.icons.Loader(url) {
                 Placeholder {
-                    Box(
-                        modifier = Modifier.background(
-                            color = when (isSystemInDarkTheme()) {
-                                true -> PhotonColors.DarkGrey30
-                                false -> PhotonColors.LightGrey30
-                            }
-                        )
-                    )
+                    PlaceHolderTabIcon(modifier)
                 }
 
                 WithIcon { icon ->
@@ -394,10 +313,59 @@ private fun RecentTabIcon(
                         painter = icon.painter,
                         contentDescription = null,
                         modifier = modifier,
-                        contentScale = ContentScale.Fit
+                        contentScale = contentScale,
                     )
                 }
             }
         }
+        else -> {
+            PlaceHolderTabIcon(modifier)
+        }
+    }
+}
+
+/**
+ * A placeholder for the recent tab icon.
+ *
+ * @param modifier [Modifier] used to shape the content.
+ */
+@Composable
+private fun PlaceHolderTabIcon(modifier: Modifier) {
+    Box(
+        modifier = modifier.background(
+            color = when (isSystemInDarkTheme()) {
+                true -> PhotonColors.DarkGrey60
+                false -> PhotonColors.LightGrey30
+            },
+        ),
+    )
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Composable
+private fun RecentTabsPreview() {
+    val tab = RecentTab.Tab(
+        TabSessionState(
+            id = "tabId",
+            content = ContentState(
+                url = "www.mozilla.com",
+            ),
+        ),
+    )
+
+    FirefoxTheme {
+        RecentTabs(
+            recentTabs = listOf(
+                tab,
+            ),
+            menuItems = listOf(
+                RecentTabMenuItem(
+                    title = "Menu item",
+                    onClick = {},
+                ),
+            ),
+            onRecentTabClick = {},
+        )
     }
 }

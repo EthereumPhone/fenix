@@ -20,8 +20,8 @@ import mozilla.components.support.test.rule.MainCoroutineRule
 import mozilla.components.support.test.rule.runTestOnMain
 import mozilla.components.support.utils.CreditCardNetworkType
 import mozilla.telemetry.glean.testing.GleanTestRule
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -52,7 +52,7 @@ class DefaultCreditCardEditorControllerTest {
         every { showDeleteDialog(any()) } answers {
             firstArg<DialogInterface.OnClickListener>().onClick(
                 mockk(relaxed = true),
-                mockk(relaxed = true)
+                mockk(relaxed = true),
             )
         }
         controller = spyk(
@@ -61,8 +61,8 @@ class DefaultCreditCardEditorControllerTest {
                 lifecycleScope = testCoroutineScope,
                 navController = navController,
                 ioDispatcher = testDispatcher,
-                showDeleteDialog = showDeleteDialog
-            )
+                showDeleteDialog = showDeleteDialog,
+            ),
         )
     }
 
@@ -78,7 +78,7 @@ class DefaultCreditCardEditorControllerTest {
     @Test
     fun handleDeleteCreditCard() = runTestOnMain {
         val creditCardId = "id"
-        assertFalse(CreditCards.deleted.testHasValue())
+        assertNull(CreditCards.deleted.testGetValue())
 
         controller.handleDeleteCreditCard(creditCardId)
 
@@ -86,7 +86,7 @@ class DefaultCreditCardEditorControllerTest {
             storage.deleteCreditCard(creditCardId)
             navController.popBackStack()
         }
-        assertTrue(CreditCards.deleted.testHasValue())
+        assertNotNull(CreditCards.deleted.testGetValue())
     }
 
     @Test
@@ -97,9 +97,9 @@ class DefaultCreditCardEditorControllerTest {
             cardNumberLast4 = "1112",
             expiryMonth = 1,
             expiryYear = 2030,
-            cardType = CreditCardNetworkType.DISCOVER.cardName
+            cardType = CreditCardNetworkType.DISCOVER.cardName,
         )
-        assertFalse(CreditCards.saved.testHasValue())
+        assertNull(CreditCards.saved.testGetValue())
 
         controller.handleSaveCreditCard(creditCardFields)
 
@@ -107,7 +107,7 @@ class DefaultCreditCardEditorControllerTest {
             storage.addCreditCard(creditCardFields)
             navController.popBackStack()
         }
-        assertTrue(CreditCards.saved.testHasValue())
+        assertNotNull(CreditCards.saved.testGetValue())
     }
 
     @Test
@@ -119,9 +119,9 @@ class DefaultCreditCardEditorControllerTest {
             cardNumberLast4 = "1112",
             expiryMonth = 1,
             expiryYear = 2034,
-            cardType = CreditCardNetworkType.DISCOVER.cardName
+            cardType = CreditCardNetworkType.DISCOVER.cardName,
         )
-        assertFalse(CreditCards.modified.testHasValue())
+        assertNull(CreditCards.modified.testGetValue())
 
         controller.handleUpdateCreditCard(creditCardId, creditCardFields)
 
@@ -129,6 +129,6 @@ class DefaultCreditCardEditorControllerTest {
             storage.updateCreditCard(creditCardId, creditCardFields)
             navController.popBackStack()
         }
-        assertTrue(CreditCards.modified.testHasValue())
+        assertNotNull(CreditCards.modified.testGetValue())
     }
 }

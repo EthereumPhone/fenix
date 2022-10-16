@@ -31,7 +31,11 @@
 
     <action
         android:id="@+id/action_global_home_onboarding_dialog"
-        app:destination="@id/homeOnboardingDialogFragment"
+        app:destination="@id/homeOnboardingDialogFragment" />
+
+    <action
+        android:id="@+id/action_global_wallpaper_onboarding_dialog"
+        app:destination="@id/wallpaperOnboardingDialogFragment"
         app:popUpTo="@id/homeFragment" />
 
     <action
@@ -158,11 +162,6 @@
             android:defaultValue="false"
             app:argType="boolean" />
         <argument
-            android:name="focusGroupTabId"
-            app:nullable="true"
-            android:defaultValue="@null"
-            app:argType="string" />
-        <argument
             android:name="page"
             android:defaultValue="NormalTabs"
             app:argType="org.mozilla.fenix.tabstray.Page" />
@@ -185,11 +184,18 @@
             android:name="focusOnAddressBar"
             android:defaultValue="false"
             app:argType="boolean" />
+        <argument
+            android:name="scrollToCollection"
+            android:defaultValue="false"
+            app:argType="boolean" />
     </fragment>
     <dialog
         android:id="@+id/homeOnboardingDialogFragment"
-        android:name="org.mozilla.fenix.onboarding.HomeOnboardingDialogFragment"
-        tools:layout="@layout/fragment_onboarding_home_dialog"/>
+        android:name="org.mozilla.fenix.onboarding.HomeOnboardingDialogFragment" />
+
+    <dialog
+        android:id="@+id/wallpaperOnboardingDialogFragment"
+        android:name="org.mozilla.fenix.onboarding.WallpaperOnboardingDialogFragment" />
 
     <dialog
         android:id="@+id/searchDialogFragment"
@@ -272,10 +278,6 @@
             app:destination="@id/historySearchDialogFragment"
             app:popUpTo="@id/historySearchDialogFragment"
             app:popUpToInclusive="true" />
-
-        <action
-            android:id="@+id/action_historyFragment_to_syncedHistoryFragment"
-            app:destination="@id/syncedHistoryFragment" />
     </fragment>
 
     <dialog
@@ -293,18 +295,6 @@
         <argument
             android:name="historyMetadataItems"
             app:argType="org.mozilla.fenix.library.history.History[]" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/syncedHistoryFragment"
-        android:name="org.mozilla.fenix.library.syncedhistory.SyncedHistoryFragment"
-        android:label="@string/history_from_other_devices"
-        tools:layout="@layout/fragment_synced_history">
-        <action
-            android:id="@+id/action_global_history_search_dialog"
-            app:destination="@id/historySearchDialogFragment"
-            app:popUpTo="@id/historySearchDialogFragment"
-            app:popUpToInclusive="true" />
     </fragment>
 
     <fragment
@@ -664,7 +654,36 @@
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_settingsFragment_to_startProfilerDialog"
+            app:destination="@id/profilerStartDialogFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_settingsFragment_to_stopProfilerDialog"
+            app:destination="@id/profilerStopDialogFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_settingsFragment_to_syncDebugFragment"
+            app:destination="@id/syncDebugFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
     </fragment>
+    <dialog
+        android:id="@+id/profilerStartDialogFragment"
+        android:name="org.mozilla.fenix.perf.ProfilerStartDialogFragment">
+    </dialog>
+    <dialog
+        android:id="@+id/profilerStopDialogFragment"
+        android:name="org.mozilla.fenix.perf.ProfilerStopDialogFragment">
+    </dialog>
     <fragment
         android:id="@+id/tabsSettingsFragment"
         android:name="org.mozilla.fenix.settings.TabsSettingsFragment"
@@ -740,7 +759,7 @@
     <fragment
         android:id="@+id/turnOnSyncFragment"
         android:name="org.mozilla.fenix.settings.account.TurnOnSyncFragment"
-        android:label="@string/preferences_sync"
+        android:label="@string/preferences_sync_2"
         tools:layout="@layout/fragment_turn_on_sync">
         <argument
             android:name="padSnackbar"
@@ -754,7 +773,7 @@
     <fragment
         android:id="@+id/pairFragment"
         android:name="org.mozilla.fenix.settings.PairFragment"
-        android:label="@string/preferences_sync"
+        android:label="@string/preferences_sync_2"
         tools:layout="@layout/fragment_pair" />
 
     <fragment
@@ -821,6 +840,10 @@
         android:name="org.mozilla.fenix.exceptions.trackingprotection.TrackingProtectionExceptionsFragment"
         android:label="@string/preference_exceptions"
         tools:layout="@layout/fragment_exceptions" />
+    <fragment
+        android:id="@+id/syncDebugFragment"
+        android:name="org.mozilla.fenix.settings.SyncDebugFragment"
+        android:label="@string/preferences_sync_debug" />
     <dialog
         android:id="@+id/collectionCreationFragment"
         android:name="org.mozilla.fenix.collections.CollectionCreationFragment"
@@ -871,7 +894,7 @@
             app:destination="@id/addNewDeviceFragment" />
         <argument
             android:name="sessionId"
-            android:defaultValue="null"
+            android:defaultValue="@null"
             app:argType="string"
             app:nullable="true" />
         <argument
@@ -1259,11 +1282,11 @@
             android:id="@+id/addressEditorFragment"
             android:name="org.mozilla.fenix.settings.address.AddressEditorFragment"
             android:label="@string/addresses_add_address">
-        <argument
-            android:name="address"
-            android:defaultValue="@null"
-            app:argType="mozilla.components.concept.storage.Address"
-            app:nullable="true" />
+            <argument
+                android:name="address"
+                android:defaultValue="@null"
+                app:argType="mozilla.components.concept.storage.Address"
+                app:nullable="true" />
         </fragment>
         <fragment
             android:id="@+id/addressManagementFragment"

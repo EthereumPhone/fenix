@@ -12,8 +12,8 @@ import io.mockk.verify
 import mozilla.components.support.test.robolectric.testContext
 import mozilla.telemetry.glean.testing.GleanTestRule
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -24,7 +24,6 @@ import org.mozilla.fenix.HomeActivity
 import org.mozilla.fenix.components.AppStore
 import org.mozilla.fenix.components.appstate.AppAction
 import org.mozilla.fenix.components.appstate.AppAction.MessagingAction.MessageClicked
-import org.mozilla.fenix.components.appstate.AppAction.MessagingAction.MessageDisplayed
 import org.mozilla.fenix.helpers.FenixRobolectricTestRunner
 import org.mozilla.fenix.nimbus.MessageData
 
@@ -44,7 +43,7 @@ class DefaultMessageControllerTest {
         controller = DefaultMessageController(
             messagingStorage = storageNimbus,
             appStore = store,
-            homeActivity = activity
+            homeActivity = activity,
         )
     }
 
@@ -54,12 +53,12 @@ class DefaultMessageControllerTest {
         val message = mockMessage()
         every { customController.handleAction(any()) } returns mockk()
         every { storageNimbus.getMessageAction(message) } returns Pair("uuid", message.id)
-        assertFalse(Messaging.messageClicked.testHasValue())
+        assertNull(Messaging.messageClicked.testGetValue())
 
         customController.onMessagePressed(message)
 
-        assertTrue(Messaging.messageClicked.testHasValue())
-        val event = Messaging.messageClicked.testGetValue()
+        assertNotNull(Messaging.messageClicked.testGetValue())
+        val event = Messaging.messageClicked.testGetValue()!!
         assertEquals(1, event.size)
         assertEquals(message.id, event.single().extra!!["message_key"])
         assertEquals("uuid", event.single().extra!!["action_uuid"])
@@ -76,7 +75,7 @@ class DefaultMessageControllerTest {
         val encodedUrl = Uri.encode("http://mozilla.org")
         assertEquals(
             "${BuildConfig.DEEP_LINK_SCHEME}://open?url=$encodedUrl",
-            intent.data.toString()
+            intent.data.toString(),
         )
     }
 
@@ -92,37 +91,15 @@ class DefaultMessageControllerTest {
     @Test
     fun `WHEN calling onMessageDismissed THEN report to the messageManager`() {
         val message = mockMessage()
-        assertFalse(Messaging.messageDismissed.testHasValue())
+        assertNull(Messaging.messageDismissed.testGetValue())
 
         controller.onMessageDismissed(message)
 
-        assertTrue(Messaging.messageDismissed.testHasValue())
-        val event = Messaging.messageDismissed.testGetValue()
+        assertNotNull(Messaging.messageDismissed.testGetValue())
+        val event = Messaging.messageDismissed.testGetValue()!!
         assertEquals(1, event.size)
         assertEquals(message.id, event.single().extra!!["message_key"])
         verify { store.dispatch(AppAction.MessagingAction.MessageDismissed(message)) }
-    }
-
-    @Test
-    fun `WHEN calling onMessageDisplayed THEN report to the messageManager`() {
-        val data = MessageData()
-        val message = mockMessage(data)
-        assertFalse(Messaging.messageExpired.testHasValue())
-        assertFalse(Messaging.messageShown.testHasValue())
-
-        controller.onMessageDisplayed(message)
-
-        assertTrue(Messaging.messageExpired.testHasValue())
-        val messageExpiredEvent = Messaging.messageExpired.testGetValue()
-        assertEquals(1, messageExpiredEvent.size)
-        assertEquals(message.id, messageExpiredEvent.single().extra!!["message_key"])
-
-        assertTrue(Messaging.messageShown.testHasValue())
-        val event = Messaging.messageShown.testGetValue()
-        assertEquals(1, event.size)
-        assertEquals(message.id, event.single().extra!!["message_key"])
-
-        verify { store.dispatch(MessageDisplayed(message)) }
     }
 
     private fun mockMessage(data: MessageData = MessageData()) = Message(
@@ -135,7 +112,7 @@ class DefaultMessageControllerTest {
             id = "id",
             displayCount = 0,
             pressed = false,
-            dismissed = false
-        )
+            dismissed = false,
+        ),
     )
 }

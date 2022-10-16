@@ -16,6 +16,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import mozilla.components.lib.state.ext.consumeFrom
 import mozilla.components.lib.state.ext.observeAsComposableState
+import mozilla.telemetry.glean.private.NoExtras
+import org.mozilla.fenix.GleanMetrics.Addresses
 import org.mozilla.fenix.components.StoreProvider
 import org.mozilla.fenix.ext.components
 import org.mozilla.fenix.settings.address.controller.DefaultAddressManagementController
@@ -38,7 +40,7 @@ class AddressManagementFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         store = StoreProvider.get(this) {
             AutofillFragmentStore(AutofillFragmentState())
@@ -46,8 +48,8 @@ class AddressManagementFragment : Fragment() {
 
         interactor = DefaultAddressManagementInteractor(
             controller = DefaultAddressManagementController(
-                navController = findNavController()
-            )
+                navController = findNavController(),
+            ),
         )
 
         loadAddresses()
@@ -59,8 +61,14 @@ class AddressManagementFragment : Fragment() {
 
                     AddressList(
                         addresses = addresses.value ?: emptyList(),
-                        onAddressClick = interactor::onSelectAddress,
-                        onAddAddressButtonClick = interactor::onAddAddressButtonClick
+                        onAddressClick = {
+                            interactor.onSelectAddress(it)
+                            Addresses.managementAddressTapped.record(NoExtras())
+                        },
+                        onAddAddressButtonClick = {
+                            interactor.onAddAddressButtonClick()
+                            Addresses.managementAddTapped.record(NoExtras())
+                        },
                     )
                 }
             }

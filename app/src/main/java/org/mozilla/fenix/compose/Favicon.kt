@@ -51,7 +51,7 @@ fun Favicon(
         components.core.icons.Loader(
             url = url,
             isPrivate = isPrivate,
-            size = size.toIconRequestSize()
+            size = size.toIconRequestSize(),
         ) {
             Placeholder {
                 FaviconPlaceholder(
@@ -67,7 +67,7 @@ fun Favicon(
                     modifier = modifier
                         .size(size)
                         .clip(RoundedCornerShape(2.dp)),
-                    contentScale = ContentScale.Fit
+                    contentScale = ContentScale.Crop,
                 )
             }
         }
@@ -91,14 +91,14 @@ private fun FaviconPlaceholder(
             .clip(RoundedCornerShape(2.dp))
             .background(
                 color = FirefoxTheme.colors.layer2,
-            )
+            ),
     )
 }
 
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 private fun FaviconPreview() {
-    FirefoxTheme(theme = Theme.getTheme(isPrivate = false)) {
+    FirefoxTheme(theme = Theme.getTheme()) {
         Box(Modifier.background(FirefoxTheme.colors.layer1)) {
             Favicon(
                 url = "www.mozilla.com",

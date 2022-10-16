@@ -60,6 +60,11 @@ interface RecentVisitsController {
      * @param highlightUrl Url of the [RecentHistoryHighlight] to remove.
      */
     fun handleRemoveRecentHistoryHighlight(highlightUrl: String)
+
+    /**
+     * Callback for when the user long clicks on a recent visit.
+     */
+    fun handleRecentVisitLongClicked()
 }
 
 /**
@@ -80,7 +85,7 @@ class DefaultRecentVisitsController(
     override fun handleHistoryShowAllClicked() {
         dismissSearchDialogIfDisplayed()
         navController.navigate(
-            HomeFragmentDirections.actionGlobalHistoryFragment()
+            HomeFragmentDirections.actionGlobalHistoryFragment(),
         )
     }
 
@@ -94,8 +99,8 @@ class DefaultRecentVisitsController(
             HomeFragmentDirections.actionGlobalHistoryMetadataGroup(
                 title = recentHistoryGroup.title,
                 historyMetadataItems = recentHistoryGroup.historyMetadata
-                    .mapIndexed { index, item -> item.toHistoryMetadata(index) }.toTypedArray()
-            )
+                    .mapIndexed { index, item -> item.toHistoryMetadata(index) }.toTypedArray(),
+            ),
         )
     }
 
@@ -138,6 +143,13 @@ class DefaultRecentVisitsController(
         scope.launch {
             storage.deleteHistoryMetadataForUrl(highlightUrl)
         }
+    }
+
+    /**
+     * Dismiss the search dialog if displayed.
+     */
+    override fun handleRecentVisitLongClicked() {
+        dismissSearchDialogIfDisplayed()
     }
 
     @VisibleForTesting(otherwise = PRIVATE)

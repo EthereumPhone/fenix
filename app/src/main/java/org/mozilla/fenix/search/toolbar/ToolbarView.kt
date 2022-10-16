@@ -10,11 +10,8 @@ import android.graphics.drawable.BitmapDrawable
 import androidx.annotation.VisibleForTesting
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
-import mozilla.components.browser.domains.autocomplete.ShippedDomainsProvider
+import mozilla.components.browser.state.search.SearchEngine
 import mozilla.components.browser.toolbar.BrowserToolbar
-import mozilla.components.concept.engine.Engine
-import mozilla.components.concept.storage.HistoryStorage
-import mozilla.components.feature.toolbar.ToolbarAutocompleteFeature
 import mozilla.components.support.ktx.android.content.getColorFromAttr
 import mozilla.components.support.ktx.android.content.res.resolveAttribute
 import mozilla.components.support.ktx.android.view.hideKeyboard
@@ -64,11 +61,9 @@ class ToolbarView(
     private val context: Context,
     private val settings: Settings,
     private val interactor: ToolbarInteractor,
-    private val historyStorage: HistoryStorage?,
     private val isPrivate: Boolean,
     val view: BrowserToolbar,
-    engine: Engine,
-    fromHomeFragment: Boolean
+    fromHomeFragment: Boolean,
 ) {
 
     @VisibleForTesting
@@ -88,7 +83,8 @@ class ToolbarView(
             }
 
             background = AppCompatResources.getDrawable(
-                context, context.theme.resolveAttribute(R.attr.layer1)
+                context,
+                context.theme.resolveAttribute(R.attr.layer1),
             )
 
             edit.hint = context.getString(R.string.search_hint)
@@ -98,41 +94,31 @@ class ToolbarView(
                 hint = context.getColorFromAttr(R.attr.textSecondary),
                 suggestionBackground = ContextCompat.getColor(
                     context,
-                    R.color.suggestion_highlight_color
+                    R.color.suggestion_highlight_color,
                 ),
-                clear = context.getColorFromAttr(R.attr.textPrimary)
+                clear = context.getColorFromAttr(R.attr.textPrimary),
             )
 
             edit.setUrlBackground(
-                AppCompatResources.getDrawable(context, R.drawable.search_url_background)
+                AppCompatResources.getDrawable(context, R.drawable.search_url_background),
             )
 
             private = isPrivate
 
-            setOnEditListener(object : mozilla.components.concept.toolbar.Toolbar.OnEditListener {
-                override fun onCancelEditing(): Boolean {
-                    interactor.onEditingCanceled()
-                    // We need to return false to not show display mode
-                    return false
-                }
+            setOnEditListener(
+                object : mozilla.components.concept.toolbar.Toolbar.OnEditListener {
+                    override fun onCancelEditing(): Boolean {
+                        interactor.onEditingCanceled()
+                        // We need to return false to not show display mode
+                        return false
+                    }
 
-                override fun onTextChanged(text: String) {
-                    url = text
-                    interactor.onTextChanged(text)
-                }
-            })
-        }
-
-        val engineForSpeculativeConnects = if (!isPrivate) engine else null
-
-        if (settings.shouldAutocompleteInAwesomebar) {
-            ToolbarAutocompleteFeature(
-                view,
-                engineForSpeculativeConnects
-            ).apply {
-                addDomainProvider(ShippedDomainsProvider().also { it.initialize(view.context) })
-                historyStorage?.also(::addHistoryStorageProvider)
-            }
+                    override fun onTextChanged(text: String) {
+                        url = text
+                        interactor.onTextChanged(text)
+                    }
+                },
+            )
         }
     }
 
@@ -161,6 +147,13 @@ class ToolbarView(
 
         val searchEngine = searchState.searchEngineSource.searchEngine
 
+        when (searchEngine?.type) {
+            SearchEngine.Type.APPLICATION ->
+                view.edit.hint = context.getString(R.string.application_search_hint)
+            else ->
+                view.edit.hint = context.getString(R.string.search_hint)
+        }
+
         if (!settings.showUnifiedSearchFeature && searchEngine != null) {
             val iconSize =
                 context.resources.getDimensionPixelSize(R.dimen.preference_icon_drawable_size)
@@ -169,7 +162,7 @@ class ToolbarView(
                 searchEngine.icon,
                 iconSize,
                 iconSize,
-                true
+                true,
             )
 
             val icon = BitmapDrawable(context.resources, scaledIcon)

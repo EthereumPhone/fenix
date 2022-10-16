@@ -4,11 +4,9 @@
 
 package org.mozilla.fenix.tabstray
 
-import androidx.annotation.VisibleForTesting
 import mozilla.components.lib.state.Middleware
 import mozilla.components.lib.state.MiddlewareContext
 import org.mozilla.fenix.GleanMetrics.Metrics
-import org.mozilla.fenix.GleanMetrics.SearchTerms
 import org.mozilla.fenix.GleanMetrics.TabsTray
 
 /**
@@ -17,12 +15,11 @@ import org.mozilla.fenix.GleanMetrics.TabsTray
 class TabsTrayMiddleware : Middleware<TabsTrayState, TabsTrayAction> {
 
     private var shouldReportInactiveTabMetrics: Boolean = true
-    private var shouldReportSearchGroupMetrics: Boolean = true
 
     override fun invoke(
         context: MiddlewareContext<TabsTrayState, TabsTrayAction>,
         next: (TabsTrayAction) -> Unit,
-        action: TabsTrayAction
+        action: TabsTrayAction,
     ) {
         next(action)
 
@@ -33,31 +30,6 @@ class TabsTrayMiddleware : Middleware<TabsTrayState, TabsTrayAction> {
 
                     TabsTray.hasInactiveTabs.record(TabsTray.HasInactiveTabsExtra(action.tabs.size))
                     Metrics.inactiveTabsCount.set(action.tabs.size.toLong())
-                }
-            }
-            is TabsTrayAction.UpdateTabPartitions -> {
-                if (shouldReportSearchGroupMetrics) {
-                    shouldReportSearchGroupMetrics = false
-                    val tabGroups = action.tabPartition?.tabGroups ?: emptyList()
-
-                    SearchTerms.numberOfSearchTermGroup.record(
-                        SearchTerms.NumberOfSearchTermGroupExtra(
-                            tabGroups.size.toString()
-                        )
-                    )
-
-                    if (tabGroups.isNotEmpty()) {
-                        val tabsPerGroup = tabGroups.map { it.tabIds.size }
-                        val averageTabsPerGroup = tabsPerGroup.average()
-                        SearchTerms.averageTabsPerGroup.record(
-                            SearchTerms.AverageTabsPerGroupExtra(
-                                averageTabsPerGroup.toString()
-                            )
-                        )
-
-                        val tabGroupSizeMapping = tabsPerGroup.map { generateTabGroupSizeMappedValue(it) }
-                        SearchTerms.groupSizeDistribution.accumulateSamples(tabGroupSizeMapping.toLongArray())
-                    }
                 }
             }
             is TabsTrayAction.EnterSelectMode -> {
@@ -71,17 +43,4 @@ class TabsTrayMiddleware : Middleware<TabsTrayState, TabsTrayAction> {
             }
         }
     }
-
-    @Suppress("MagicNumber")
-    @VisibleForTesting
-    /**
-     * This follows the logic outlined in metrics.yaml for "search_terms.group_size_distribution"
-     */
-    internal fun generateTabGroupSizeMappedValue(size: Int): Long =
-        when (size) {
-            2 -> 1L
-            in 3..5 -> 2L
-            in 6..10 -> 3L
-            else -> 4L
-        }
 }
