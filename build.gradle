@@ -23,6 +23,8 @@ buildscript {
             }
         }
 
+        maven { url 'https://jitpack.io' }
+
         if (project.hasProperty("googleRepo")) {
             maven {
                 name "Google"
@@ -101,6 +103,8 @@ allprojects {
                 includeGroupByRegex RepoMatching.mozilla
             }
         }
+
+        maven { url 'https://jitpack.io' }
 
         if (project.hasProperty("googleRepo")) {
             maven {

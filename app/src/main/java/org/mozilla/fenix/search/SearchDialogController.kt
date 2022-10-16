@@ -17,7 +17,13 @@ import mozilla.components.browser.state.state.selectedOrDefaultSearchEngine
 import mozilla.components.browser.state.store.BrowserStore
 import mozilla.components.concept.engine.EngineSession.LoadUrlFlags
 import mozilla.components.feature.tabs.TabsUseCases
+import mozilla.components.support.ktx.kotlin.ifNullOrEmpty
 import mozilla.components.support.ktx.kotlin.isUrl
+import org.kethereum.eip137.model.ENSName
+import org.kethereum.ens.ENS
+import org.kethereum.ens.isPotentialENSDomain
+import org.kethereum.rpc.EthereumRPC
+import org.kethereum.rpc.HttpEthereumRPC
 import org.mozilla.fenix.BrowserDirection
 import org.mozilla.fenix.GleanMetrics.Events
 import org.mozilla.fenix.GleanMetrics.SearchShortcuts
@@ -30,8 +36,6 @@ import org.mozilla.fenix.ext.settings
 import org.mozilla.fenix.search.toolbar.SearchSelectorMenu
 import org.mozilla.fenix.settings.SupportUtils
 import org.mozilla.fenix.utils.Settings
-import org.web3j.ens.EnsResolver
-import org.web3j.protocol.Web3j
 
 
 /**
@@ -71,13 +75,17 @@ class SearchDialogController(
     private val clearToolbar: () -> Unit
 ) : SearchController {
 
-    fun ethOSChecks(url: String): String {
-        if (url.endsWith(".eth")){
+    fun ethOSChecks(inputUrl: String): String {
+        var url = inputUrl
+        if (ENSName(url).isPotentialENSDomain()){
+            if (url.endsWith(".eth/")) {
+                url = url.subSequence(0, url.length-1) as String
+            }
             try {
-                val web3j = Web3j.build(EthHttpService("http://127.0.0.1:8545"));
-                val ensResolver = EthENSResolver(web3j);
-                val urlResolver = URLResolver(web3j, ensResolver.obtainPublicResolver(url).contractAddress);
-                return urlResolver.ensToURL(url)
+                val ens = ENS(HttpEthereumRPC("https://cloudflare-eth.com"))
+                return ens.getURL(ENSName(url)).ifNullOrEmpty {
+                    "$url.xyz"
+                }
             } catch (e: Exception) {
                 print(e.localizedMessage)
                 return "$url.xyz"
